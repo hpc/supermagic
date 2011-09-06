@@ -1925,22 +1925,6 @@ o CHANGE LOG
       thanks to Reese Baird for the suggestion.
     * on to version 0.5.2.
 
-2010-02-26 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
-    * removed underscore from macro names.
-    * message size specified at compile time can now be
-      overwritten by a run-time parameter -m|-msg-size.
-    * thanks to Cornell Wright for the great suggestions.
-    * on to version 0.1.1.
-    * minor updates.
-    * on to version 0.1.2.
-
-2010-03-01 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
-    * added a collective host name exchange.
-    * updated output format to include rank (host name) information.
-    * thanks to Timothy O. Harrington for the great idea.
-    * removed fixed buffer sizes found in some tests.
-    * on to version 0.1.3.
-
 2010-04-05 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
     * get_rhn now returns "???" if a remote host name exchange has not occurred
     * lower memory footprint - solves roadrunner scale issue?
@@ -1950,4 +1934,20 @@ o CHANGE LOG
     * added verbose output option
     * thanks to Ben McClelland and Daryl Grunau for their great suggestions
     * on to version 0.1.5.
+
+2010-03-01 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
+    * added a collective host name exchange.
+    * updated output format to include rank (host name) information.
+    * thanks to Timothy O. Harrington for the great idea.
+    * removed fixed buffer sizes found in some tests.
+    * on to version 0.1.3.
+
+2010-02-26 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
+    * removed underscore from macro names.
+    * message size specified at compile time can now be
+      overwritten by a run-time parameter -m|-msg-size.
+    * thanks to Cornell Wright for the great suggestions.
+    * on to version 0.1.1.
+    * minor updates.
+    * on to version 0.1.2.
 ///////////////////////////////////////////////////////////////////////////// */
