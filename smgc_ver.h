@@ -21,6 +21,6 @@
 #define SMGC_VER_H
 
 #define SMGC_DIST_NAME    "super_magic"
-#define SMGC_DIST_VERSION "0.7.1"
+#define SMGC_DIST_VERSION "0.7.2beta"
 
 #endif
