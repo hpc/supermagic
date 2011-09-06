@@ -1,0 +1,158 @@
+################################################################################
+                                  super_magic
+################################################################################
+                              ====================
+                              what is super_magic?
+                              ====================
+a very simple mpi sanity code. nothing more, nothing less.
+
+                              ====================
+                              building super_magic
+                              ====================
+################
+build - mpi only
+################
+make
+
+example (using modules and mpicc):
+
+    module load openmpi-gcc
+    make
+
+example (using modules and cc):
+
+    module load openmpi-gcc
+    make MPICC=cc
+
+example (with verbose build output)
+
+    make V=1
+
+##################
+build - mpi + cell
+##################
+make cell
+
+example (using modules, mpicc, and cellsdk):
+
+    module load openmpi-gcc cellsdk/3.1
+    make cell
+
+                               =================
+                               super_magic usage
+                               =================
+
+usage:
+    mpirun -np N ./super_magic [OPTION] ... 
+
+options:
+    [-a|--all]                   run all tests in suite
+    [-h|--help]                  display this message
+    [-m|--msg-size x[B,k,M,G]]   change message size
+    [-M|--file-size B[B,k,M,G]]  change file size (per rank)
+    [-n|--n-iters X]             run X iterations of a test suite
+    [-q|--quiet]                 run in quiet mode
+    [-s|--stat /a/path]          add /a/path to stat list
+    [-t|--with-tests t1[,t2,tn]] run tests in requested order
+    [-w|--write /a/path]         add /a/path to IO tests
+    [-V|--verbose]               display verbose output
+
+available tests:
+    hostname_exchange
+    stat_paths
+    mpi_io
+    n_to_n_io
+    small_all_to_all_ptp
+    small_allreduce_max
+    alt_sendrecv_ring
+    root_bcast
+    rand_root_bcast
+    large_sendrecv_ring
+    rand_root_bcast
+    large_all_to_root_ptp
+    large_all_to_all_ptp
+    hello_world
+# cell_sanity only available when cell support is requested via "make cell"
+    cell_sanity
+
+example:
+    mpirun -np 4 ./super_magic -s /glob/usr/file -s /usr/proj -n 2
+
+################################################################################
+example 1: basic usage
+################################################################################
+
+mpirun ./super_magic
+
+################################################################################
+example 2: example script that tests system before application run
+################################################################################
+
+mpirun ./super_magic
+
+if [[ $? != 0 ]]
+then
+    exit 1;
+fi
+
+# super_magic didn't detect any errors - run my real app now...
+mpirun ./my_real_app
+
+################################################################################
+example 3: running a custom set of tests
+################################################################################
+
+# first runs mpi_io test then runs cell_sanity test
+mpirun ./super_magic -t mpi_io,cell_sanity -w /scratch1/jess/my_data_dir
+
+
+                           ==========================
+                           super_magic best practices
+                           ==========================
+
+in general, it is best to run super_magic in a way that closely mimics the way
+in which you run your real target application.  for example, if you provide a
+list of mpi parameters that change the way in which your mpi implementation
+behaves, please also include those parameters when running super_magic.
+
+################################################################################
+example 4: open mpi mca parameters
+################################################################################
+
+mpirun -mca a_parameter -mca another ./super_magic
+
+if [[ $? != 0 ]]
+then
+    exit 1;
+fi
+
+# super_magic didn't detect any errors - run my real app now...
+mpirun -mca a_parameter -mca another ./my_real_app
+
+################################################################################
+################################################################################
+                                      FAQ
+################################################################################
+################################################################################
+
+q: "UNKNOWN" host names are not very useful.  how can i get useful
+   host names?
+a: run hostname_exchange first.  this will populate a host name lookup table and
+   get rid of "UNKNOWN" host names.
+
+   example: mpirun ./super_magic -t hostname_exchange,rand_root_bcast
+
+
+###############################################################################
+# Copyright (c) 2010-2011 Los Alamos National Security, LLC.
+#                         All rights reserved.
+#
+# This program was prepared by Los Alamos National Security, LLC at Los Alamos
+# National Laboratory (LANL) under contract No. DE-AC52-06NA25396 with the U.S.
+# Department of Energy (DOE). All rights in the program are reserved by the DOE
+# and Los Alamos National Security, LLC. Permission is granted to the public to
+# copy and use this software without charge, provided that this Notice and any
+# statement of authorship are reproduced on all copies. Neither the U.S.
+# Government nor LANS makes any warranty, express or implied, or assumes any
+# liability or responsibility for the use of this software.
+################################################################################
