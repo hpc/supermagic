@@ -243,6 +243,9 @@ static int
 hostname_exchange(void);
 
 static int
+host_info_exchange(void);
+
+static int
 large_all_to_root_ptp(void);
 
 static int
@@ -333,6 +336,10 @@ static double end_time;
 static int my_rank = 0;
 /* size of mpi_comm_world                                                     */
 static int num_ranks = 0;
+/* my network number                                                          */
+static unsigned long int my_net_num;
+/* my "color" - negative numbers are considered invalid                       */
+int my_color = -1;
 /* holds mpi return codes                                                     */
 static int mpi_ret_code = MPI_ERR_OTHER;
 /* number of paths to stat                                                    */
@@ -433,14 +440,14 @@ qsort_cmp_uli(const void *p1,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-get_num_color(unsigned long int *net_nums,
-              int num_net_nums,
-              const unsigned long int *my_net_num,
-              int *out_color)
+get_my_color(unsigned long int *net_nums,
+             int num_net_nums,
+             const unsigned long int *my_net_num,
+             int *out_color)
 {
     int i = 0, node_i = 0;
     unsigned long int prev_num;
-    
+
     qsort(net_nums, (size_t)num_net_nums, sizeof(unsigned long int),
           qsort_cmp_uli);
 
@@ -461,7 +468,7 @@ get_num_color(unsigned long int *net_nums,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-get_num_num(const char *target_hostname,
+get_net_num(const char *target_hostname,
             unsigned long int *out_net_num)
 {
     struct hostent *host = NULL;
@@ -473,14 +480,14 @@ get_num_num(const char *target_hostname,
     if (NULL == (host = gethostbyname(target_hostname))) {
         SMGC_ERR_MSG("gethostbyname error\n");
         /* epic fail! */
-        return SMGC_ERROR; 
+        return SMGC_ERROR;
     }
 
     /* htonl used here for good measure - probably not needed */
     *out_net_num = (unsigned long int)
         htonl(inet_network(inet_ntoa(*(struct in_addr *)host->h_addr)));
-    
-    return SMGC_SUCCESS; 
+
+    return SMGC_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -657,7 +664,7 @@ create_test_list(const char *test_list_str,
         SMGC_ERR_MSG("out of resources\n");
         return SMGC_ERROR;
     }
-    
+
     /* if we are here, then let the games begin */
 
     for (test_string = strtok_r(tmp_list, ",", &last);
@@ -671,7 +678,7 @@ create_test_list(const char *test_list_str,
     /* cap with NULLs */
     tmp_ptr[num_tests].tname = NULL;
     tmp_ptr[num_tests].tfp = NULL;
-    
+
     /* update the test suite */
     upd_test_suite(tmp_ptr);
     tests_on_heap = true;
@@ -870,7 +877,7 @@ n_to_n_io(void)
             goto out;
         }
         lseek_fin = MPI_Wtime();
-        
+
         memset_start = MPI_Wtime();
         /* overwrite buff's contents before read */
         memset(buff, clobber_char, buff_size);
@@ -892,7 +899,7 @@ n_to_n_io(void)
             goto out;
         }
         close_time = MPI_Wtime();
-        
+
         fd = -1;
 
         if (0 != unlink(my_file_name)) {
@@ -1120,7 +1127,7 @@ mpi_io(void)
     SMGC_MEMCHK(buff, out);
 
     memset(buff, 'j', (size_t)(file_size * sizeof(char)));
-    
+
     /* if we are here, then let the real work begin */
 
     SMGC_MPF("       file size (per rank process): %lu B\n", file_size);
@@ -1250,6 +1257,40 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
+host_info_exchange(void)
+{
+    unsigned long int *net_nums = (unsigned long int *)
+                                  calloc(num_ranks, sizeof(unsigned long int));
+    int mpi_rc, rc = SMGC_ERROR;
+
+    if (NULL == net_nums) {
+        SMGC_ERR_MSG("out of resources\n");
+        return SMGC_ERROR;
+    }
+    if (SMGC_SUCCESS != get_net_num(host_name_buff, &my_net_num)) {
+        SMGC_ERR_MSG("get_net_num failure\n");
+        goto out;
+    }
+
+    SMGC_MPF("       mpi_comm_world: exchanging host information\n"
+             "       mpi_allgather buffer size: %lu B\n",
+             (num_ranks * sizeof(unsigned long int)));
+    mpi_rc = MPI_Allgather(&my_net_num, 1, MPI_UNSIGNED_LONG, net_nums, 1,
+                           MPI_UNSIGNED_LONG, MPI_COMM_WORLD);
+    SMGC_MPICHK(mpi_rc, out);
+    if (SMGC_SUCCESS != get_my_color(net_nums, num_ranks, &my_net_num,
+                                     &my_color)) {
+        SMGC_ERR_MSG("get_my_color failure\n");
+        goto out;
+    }
+
+out:
+    if (NULL != net_nums) free(net_nums);
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
 hostname_exchange(void)
 {
     int buff_size = num_ranks * SMGC_HOST_NAME_MAX * sizeof(char);
@@ -1257,7 +1298,7 @@ hostname_exchange(void)
         rhname_lut_ptr = (char *)calloc(buff_size, sizeof(char));
         SMGC_MEMCHK(rhname_lut_ptr, error);
     }
-    
+
     memset(rhname_lut_ptr, '\0', buff_size);
 
     SMGC_MPF("       mpi_comm_world: mpi_allgather buffer size: %d B\n",
@@ -1294,7 +1335,7 @@ small_allreduce_max(void)
     SMGC_MPICHK(mpi_ret_code, error);
 
     SMGC_MPF("       mpi_comm_world: verifying result\n");
-    
+
     /* yes, i do want to do it this way :-) */
     if (recv_buff != (double)(num_ranks - 1)) {
         SMGC_ERR_MSG("invalid result detected\n");
@@ -1326,7 +1367,7 @@ large_all_to_root_ptp(void)
     }
 
     SMGC_MPF("       message size: %d B\n", buff_size);
-    
+
     /* if we are here, let the games begin */
 
     if (SMGC_MASTER_RANK != my_rank) {
