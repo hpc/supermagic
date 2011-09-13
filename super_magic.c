@@ -91,6 +91,9 @@ o BUILD EXAMPLES
     #define SMGC_BIN_SIZE 1
 #endif
 
+/* invalid color - all valid colors are expected to be positive values */
+#define SMGC_COLOR_INVALID -1
+
 /* return codes used for internal purposes */
 enum {
     SMGC_SUCCESS = 0,
@@ -228,6 +231,10 @@ typedef struct double_int_t {
 } double_int_t;
 
 static int
+get_net_num(const char *target_hostname,
+            unsigned long int *out_net_num);
+
+static int
 get_mult(char symbol, int *resp);
 
 static int
@@ -338,8 +345,8 @@ static int my_rank = 0;
 static int num_ranks = 0;
 /* my network number                                                          */
 static unsigned long int my_net_num;
-/* my "color" - negative numbers are considered invalid                       */
-int my_color = -1;
+/* my "color"                                                                 */
+int my_color = SMGC_COLOR_INVALID;
 /* holds mpi return codes                                                     */
 static int mpi_ret_code = MPI_ERR_OTHER;
 /* number of paths to stat                                                    */
@@ -440,20 +447,49 @@ qsort_cmp_uli(const void *p1,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-get_my_color(unsigned long int *net_nums,
-             int num_net_nums,
-             const unsigned long int *my_net_num,
-             int *out_color)
+get_my_global_color(bool used_cached, int *out_color)
 {
+    unsigned long int *net_nums = NULL;
+    int mpi_rc = MPI_ERR_OTHER, rc = SMGC_ERROR;
     int i = 0, node_i = 0;
     unsigned long int prev_num;
 
-    qsort(net_nums, (size_t)num_net_nums, sizeof(unsigned long int),
+    if (NULL == out_color) {
+        return SMGC_ERROR;
+    }
+
+    /* do we have to figure this out - or can we use a cached value? */
+    if (SMGC_COLOR_INVALID != my_color && used_cached) {
+        *out_color = my_color;
+        return SMGC_SUCCESS;
+    }
+
+    /* if we are here, then we have to do some work :-( */
+    net_nums = (unsigned long int *)calloc(num_ranks,
+                                           sizeof(unsigned long int));
+    if (NULL == net_nums) {
+        SMGC_ERR_MSG("out of resources\n");
+        return SMGC_ERROR;
+    }
+    if (SMGC_SUCCESS != get_net_num(host_name_buff, &my_net_num)) {
+        SMGC_ERR_MSG("get_net_num failure\n");
+        goto out;
+    }
+
+    SMGC_MPF("       mpi_comm_world: exchanging network infomation\n"
+             "       mpi_allgather buffer size: %lu B\n",
+             (num_ranks * sizeof(unsigned long int)));
+
+    mpi_rc = MPI_Allgather(&my_net_num, 1, MPI_UNSIGNED_LONG, net_nums, 1,
+                           MPI_UNSIGNED_LONG, MPI_COMM_WORLD);
+    SMGC_MPICHK(mpi_rc, out);
+
+    qsort(net_nums, (size_t)num_ranks, sizeof(unsigned long int),
           qsort_cmp_uli);
 
     prev_num = net_nums[i++];
 
-    while (i < num_net_nums && prev_num != *my_net_num) {
+    while (i < num_ranks && prev_num != my_net_num) {
         while (net_nums[i] == prev_num) {
             ++i;
         }
@@ -462,8 +498,11 @@ get_my_color(unsigned long int *net_nums,
     }
 
     *out_color = node_i;
+    rc = SMGC_SUCCESS;
 
-    return SMGC_SUCCESS;
+out:
+    if (NULL != net_nums) free(net_nums);
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -1261,26 +1300,14 @@ host_info_exchange(void)
 {
     unsigned long int *net_nums = (unsigned long int *)
                                   calloc(num_ranks, sizeof(unsigned long int));
-    int mpi_rc, rc = SMGC_ERROR;
+    int rc = SMGC_ERROR;
 
     if (NULL == net_nums) {
         SMGC_ERR_MSG("out of resources\n");
         return SMGC_ERROR;
     }
-    if (SMGC_SUCCESS != get_net_num(host_name_buff, &my_net_num)) {
-        SMGC_ERR_MSG("get_net_num failure\n");
-        goto out;
-    }
-
-    SMGC_MPF("       mpi_comm_world: exchanging host information\n"
-             "       mpi_allgather buffer size: %lu B\n",
-             (num_ranks * sizeof(unsigned long int)));
-    mpi_rc = MPI_Allgather(&my_net_num, 1, MPI_UNSIGNED_LONG, net_nums, 1,
-                           MPI_UNSIGNED_LONG, MPI_COMM_WORLD);
-    SMGC_MPICHK(mpi_rc, out);
-    if (SMGC_SUCCESS != get_my_color(net_nums, num_ranks, &my_net_num,
-                                     &my_color)) {
-        SMGC_ERR_MSG("get_my_color failure\n");
+    if (SMGC_SUCCESS != get_my_global_color(true, &my_color)) {
+        SMGC_ERR_MSG("get_my_global_color failure\n");
         goto out;
     }
 
