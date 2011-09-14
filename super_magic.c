@@ -47,7 +47,7 @@ o BUILD EXAMPLES
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "smgc_ver.h"
+#include "smgc_config.h"
 #include "mpi.h"
 
 /* only include the following if building with cell support */

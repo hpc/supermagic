@@ -17,11 +17,11 @@
 SHELL  = /bin/sh
 
 SMGC_NAME = \
-`cat smgc_ver.h | grep SMGC_DIST_NAME \
+`cat smgc_config.h | grep SMGC_DIST_NAME \
 | tr -s ' ' | cut -d ' ' -f 3 | tr -d '"'`
 
 SM_DIST_VER = \
-`cat smgc_ver.h | grep SMGC_DIST_VERSION | \
+`cat smgc_config.h | grep SMGC_DIST_VERSION | \
 tr -s ' ' | cut -d ' ' -f 3 | tr -d '"'`
 
 SM_DIST_NAME_VER = "$(SMGC_NAME)-$(SM_DIST_VER)"
