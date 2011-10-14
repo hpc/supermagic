@@ -44,6 +44,6 @@ PRETTY_AR      = @echo "  AR      "$@;${AR}
 PRETTY_RANLIB  = @echo "  RANLIB  "$@;ranlib
 endif
 
-#CFLAGS = -g -O0
-CFLAGS = -g -O0 -Wall
+CFLAGS = -g -O0
+#CFLAGS = -g -O0 -Wall
 CELL_LDFLAGS = -L/usr/lib64/dacs/debug -ldacs_hybrid -Lcell_check -lcell_check

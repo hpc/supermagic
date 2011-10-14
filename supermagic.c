@@ -158,7 +158,7 @@ enum {
 /* error reporting macros */
 #define SMGC_ERR_AT           __FILE__ " ("SMGC_TOSTRING(__LINE__)")"
 #define SMGC_ERR_PREFIX       "-[SMGC ERROR: "SMGC_ERR_AT" <results> FAILED ]- "
-#define SMGC_MSG_PREFIX       "-[super_magic]- "
+#define SMGC_MSG_PREFIX       "-[supermagic]- "
 
 /* error message */
 #define SMGC_ERR_MSG(pfargs...)                                                \
@@ -230,9 +230,11 @@ typedef struct double_int_t {
     int rank;
 } double_int_t;
 
+#if 0
 static int
 get_net_num(const char *target_hostname,
             unsigned long int *out_net_num);
+#endif
 
 static int
 get_mult(char symbol, int *resp);
@@ -249,8 +251,10 @@ small_allreduce_max(void);
 static int
 hostname_exchange(void);
 
+#if 0
 static int
 host_info_exchange(void);
+#endif
 
 static int
 large_all_to_root_ptp(void);
@@ -343,8 +347,10 @@ static double end_time;
 static int my_rank = 0;
 /* size of mpi_comm_world                                                     */
 static int num_ranks = 0;
+#if 0
 /* my network number                                                          */
 static unsigned long int my_net_num;
+#endif
 /* my "color"                                                                 */
 int my_color = SMGC_COLOR_INVALID;
 /* holds mpi return codes                                                     */
@@ -437,6 +443,7 @@ static smgc_test_t smgc_lrg_jb_tests[] =
 /* ////////////////////////////////////////////////////////////////////////// */
 /* ////////////////////////////////////////////////////////////////////////// */
 
+#if 0
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 qsort_cmp_uli(const void *p1,
@@ -528,6 +535,7 @@ get_net_num(const char *target_hostname,
 
     return SMGC_SUCCESS;
 }
+#endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
@@ -1294,6 +1302,7 @@ out:
     return rc;
 }
 
+#if 0
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 host_info_exchange(void)
@@ -1315,6 +1324,7 @@ out:
     if (NULL != net_nums) free(net_nums);
     return rc;
 }
+#endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
@@ -1988,7 +1998,7 @@ o CHANGE LOG
 2011-01-02 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
     * incorporated Evan H. Samanas' I/O stats code.  Thanks Evan!
     * on to version 0.5.1.
-    * added a -M parameter to super_magic.  the -M parameter changes the default
+    * added a -M parameter to supermagic.  the -M parameter changes the default
       target file size written by each rank process (see: mpi_io and n_to_n_io).
       thanks to Reese Baird for the suggestion.
     * on to version 0.5.2.

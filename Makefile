@@ -42,7 +42,7 @@ $(shell ls cell_check/*.c) \
 
 include Makefile.include
 
-TARGET = super_magic
+TARGET = supermagic
 
 all: $(TARGET)
 
