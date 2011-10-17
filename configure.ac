@@ -31,6 +31,11 @@ AM_CONFIG_HEADER([config.h])
 # note that we are checking for mpicc first, the next check will verify CC
 AC_PROG_CC([mpicc cc])
 
+AM_PROG_CC_C_O
+AC_PROG_CC_C99
+
+AC_USE_SYSTEM_EXTENSIONS
+
 # check for adequate mpi support
 AC_MSG_CHECKING([if $CC can compile MPI applications])
 AC_LINK_IFELSE([
@@ -42,8 +47,6 @@ AC_LINK_IFELSE([
      AC_MSG_ERROR([$CC cannot compile MPI applications. cannot continue.])]
 )
 
-AM_PROG_CC_C_O
-AC_PROG_CC_C99
 
 # checks for libraries.
 # none at this point
