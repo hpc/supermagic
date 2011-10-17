@@ -13,7 +13,7 @@
  */
 
 /**
- * @author Samuel K. Gutierrez - samuelREMOVEME[at]lanl.gov
+ * @author Samuel K. Gutierrez - samuelREMOVEME@lanl.gov
  * found a bug? have an idea? please let me know.
  */
 
@@ -1983,49 +1983,3 @@ error:
     MPI_Abort(MPI_COMM_WORLD, mpi_ret_code);
     return EXIT_FAILURE;
 }
-
-/* /////////////////////////////////////////////////////////////////////////////
-o CHANGE LOG
-
-2011-05-19 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
-    * updated code - ready for public distribution.
-    * on to version 0.7.0
-
-2011-03-10 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
-    * fixed Makefile to allow for Intel compilation
-    * on to version 0.6.0
-
-2011-01-02 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
-    * incorporated Evan H. Samanas' I/O stats code.  Thanks Evan!
-    * on to version 0.5.1.
-    * added a -M parameter to supermagic.  the -M parameter changes the default
-      target file size written by each rank process (see: mpi_io and n_to_n_io).
-      thanks to Reese Baird for the suggestion.
-    * on to version 0.5.2.
-
-2010-04-05 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
-    * get_rhn now returns "???" if a remote host name exchange has not occurred
-    * lower memory footprint - solves roadrunner scale issue?
-    * by default, a stat of the user's home dir is now disabled
-    * modified test order
-    * removed ptp_sanity test
-    * added verbose output option
-    * thanks to Ben McClelland and Daryl Grunau for their great suggestions
-    * on to version 0.1.5.
-
-2010-03-01 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
-    * added a collective host name exchange.
-    * updated output format to include rank (host name) information.
-    * thanks to Timothy O. Harrington for the great idea.
-    * removed fixed buffer sizes found in some tests.
-    * on to version 0.1.3.
-
-2010-02-26 Samuel K. Gutierrez samuelREMOVEME[at]lanl.gov
-    * removed underscore from macro names.
-    * message size specified at compile time can now be
-      overwritten by a run-time parameter -m|-msg-size.
-    * thanks to Cornell Wright for the great suggestions.
-    * on to version 0.1.1.
-    * minor updates.
-    * on to version 0.1.2.
-///////////////////////////////////////////////////////////////////////////// */
