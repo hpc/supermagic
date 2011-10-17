@@ -14,6 +14,6 @@
 
 bin_PROGRAMS = supermagic
 
-mpimemu_SOURCES = \
+supermagic_SOURCES = \
 smgc_config.h \
 supermagic.c
