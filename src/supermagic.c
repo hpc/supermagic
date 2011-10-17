@@ -27,6 +27,10 @@ o BUILD EXAMPLES
 
     see README for more details
 ///////////////////////////////////////////////////////////////////////////// */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifndef _GNU_SOURCE
     #define _GNU_SOURCE
 #endif
@@ -47,7 +51,6 @@ o BUILD EXAMPLES
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "smgc_config.h"
 #include "mpi.h"
 
 /* only include the following if building with cell support */
@@ -107,7 +110,7 @@ enum {
 
 #define SMGC_USAGE                                                             \
 "usage:\n"                                                                     \
-"    mpirun -np N ./"SMGC_DIST_NAME" [OPTION] ... \n\n"                        \
+"    mpirun -np N ./"PACKAGE_NAME" [OPTION] ... \n\n"                          \
 "options:\n"                                                                   \
 "    [-a|--all]                   run all tests in suite\n"                    \
 "    [-h|--help]                  display this message\n"                      \
@@ -122,7 +125,7 @@ enum {
 
 #define SMGC_EXAMPLE                                                           \
 "example:\n"                                                                   \
-"    mpirun -np 4 ./"SMGC_DIST_NAME" -s /glob/usr/file -s /usr/proj -n 2\n"
+"    mpirun -np 4 ./"PACKAGE_NAME" -s /glob/usr/file -s /usr/proj -n 2\n"
 
 /* "master" rank */
 #define SMGC_MASTER_RANK       0
@@ -1827,7 +1830,7 @@ main(int argc,
                 break;
 
             case 'v': /* version */
-                SMGC_MPF("%s %s\n", SMGC_DIST_NAME, SMGC_DIST_VERSION);
+                SMGC_MPF("%s %s\n", PACKAGE_NAME, PACKAGE_VERSION);
                 goto fin;
 
             case 'V': /* don't shh! */
@@ -1916,7 +1919,7 @@ main(int argc,
     host_name_buff[SMGC_HOST_NAME_MAX - 1] = '\0';
 
     /* display info header */
-    SMGC_MPF("\n   $$$ %s %s $$$\n\n", SMGC_DIST_NAME, SMGC_DIST_VERSION);
+    SMGC_MPF("\n   $$$ %s %s $$$\n\n", PACKAGE_NAME, PACKAGE_VERSION);
     SMGC_MPF("   start yyyymmdd-hhmmss  : %s\n", start_time_str);
     SMGC_MPF("   hostname               : %s\n", host_name_buff);
     SMGC_MPF("   numpe                  : %d\n", num_ranks);

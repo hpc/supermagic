@@ -15,5 +15,4 @@
 bin_PROGRAMS = supermagic
 
 supermagic_SOURCES = \
-smgc_config.h \
 supermagic.c
