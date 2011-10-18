@@ -16,8 +16,8 @@ AC_PREREQ([2.60])
 
 AC_INIT([supermagic], [1.0dev], [samuelREMOVEME@lanl.gov])
 
-# Check If AM_SILENT_RULES Rule Are Supported
-# If So, Build Using AM_SILENT_RULES
+# check if AM_SILENT_RULES are supported
+# if so, build using AM_SILENT_RULES
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_SRCDIR([src])
