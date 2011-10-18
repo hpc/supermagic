@@ -16,19 +16,19 @@ AC_PREREQ([2.60])
 
 AC_INIT([supermagic], [1.0dev], [samuelREMOVEME@lanl.gov])
 
-# check if AM_SILENT_RULES are supported
-# if so, build using AM_SILENT_RULES
+dnl check if AM_SILENT_RULES are supported
+dnl if so, build using AM_SILENT_RULES
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_SRCDIR([src])
 
-# note: -Wall -Werror are automake options.  they are NOT compiler flags
+dnl note: -Wall -Werror are automake options.  they are NOT compiler flags
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AM_CONFIG_HEADER([config.h])
 
-# checks for programs.
-# note that we are checking for mpicc first, the next check will verify CC
+dnl checks for programs.
+dnl note that we are checking for mpicc first, the next check will verify CC
 AC_PROG_CC([mpicc cc])
 
 AM_PROG_CC_C_O
@@ -36,7 +36,7 @@ AC_PROG_CC_C99
 
 AC_USE_SYSTEM_EXTENSIONS
 
-# check for adequate mpi support
+dnl check for adequate mpi support
 AC_MSG_CHECKING([if $CC can compile MPI applications])
 AC_LINK_IFELSE([
     AC_LANG_PROGRAM(
@@ -48,17 +48,17 @@ AC_LINK_IFELSE([
 )
 
 
-# checks for libraries.
-# none at this point
+dnl checks for libraries.
+dnl none at this point
 
-# checks for header files.
+dnl checks for header files.
 AC_CHECK_HEADERS([inttypes.h limits.h stdint.h stdlib.h string.h unistd.h])
 
-# checks for typedefs, structures, and compiler characteristics.
+dnl checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 
-# checks for library functions.
+dnl checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
 
@@ -67,7 +67,7 @@ AC_CONFIG_FILES([Makefile
 
 AC_OUTPUT
 
-# let the user know the configuration 
+dnl let the user know the configuration
 
 cat << EOF
 
