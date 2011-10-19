@@ -21,8 +21,6 @@
 #include "smgc_constants.h"
 #include "smgc_err.h"
 
-#include "mpi.h"
-
 #define SMGC_ERR_PREFIX_STR ""PACKAGE_NAME" ERROR:"
 
 void
