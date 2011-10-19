@@ -14,8 +14,6 @@
 #ifndef SMGC_ERR_INCLUDED
 #define SMGC_ERR_INCLUDED
 
-#include <stdlib.h>
-
 void
 smgc_err(const char *file_name,
          int lineno,
