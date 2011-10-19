@@ -52,7 +52,7 @@ smgc_mpi_init(smgc_mpi_t *mpip,
         bad_func = "MPI_Comm_rank";
         goto cleanup;
     }
-    mpip->smp_id = SMGC_WORKER_ID_INVALID;
+    mpip->smp_id = SMGC_SMP_ID_INVALID;
     mpip->smp_comm = MPI_COMM_NULL;
 
 cleanup:
@@ -74,6 +74,10 @@ smgc_mpi_finalize(smgc_mpi_t *mpip)
         bad_func = "MPI_Finalize";
         goto bail;
     }
+    mpip->rank = SMGC_RANK_INVALID;
+    mpip->num_ranks = 0;
+    mpip->smp_id = SMGC_SMP_ID_INVALID;
+    mpip->smp_comm = MPI_COMM_NULL;
 
 bail:
     if (NULL != bad_func) {

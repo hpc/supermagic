@@ -16,7 +16,8 @@
 
 #include "mpi.h"
 
-#define SMGC_WORKER_ID_INVALID -1
+#define SMGC_RANK_INVALID -1
+#define SMGC_SMP_ID_INVALID -1
 
 typedef smgc_mpi_t {
     int rank;
