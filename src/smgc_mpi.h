@@ -33,4 +33,7 @@ smgc_mpi_init(smgc_mpi_t *mpip,
               int argc,
               char **argv);
 
+int
+smgc_mpi_finalize(smgc_mpi_t *mpip);
+
 #endif /* ifndef SMGC_MPI_INCLUDED */

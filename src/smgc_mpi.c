@@ -21,15 +21,6 @@
 #include "smgc_constants.h"
 #include "mpi.h"
 
-#define SMGC_WORKER_ID_INVALID -1
-
-typedef smgc_mpi_t {
-    int rank;
-    int num_ranks;
-    int smp_id;
-    MPI_Comm smp_comm;
-} smgc_mpi_t;
-
 /* ////////////////////////////////////////////////////////////////////////// */
 char *
 smgc_mpi_rc2estr(int rc)
@@ -65,6 +56,26 @@ smgc_mpi_init(smgc_mpi_t *mpip,
     mpip->smp_comm = MPI_COMM_NULL;
 
 cleanup:
+    if (NULL != bad_func) {
+        /* TODO add err msg */
+        return SMGC_FAILURE_MPI;
+    }
+    return SMGC_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+smgc_mpi_finalize(smgc_mpi_t *mpip)
+{
+    int rc;
+    char *bad_func = NULL;
+
+    if (MPI_SUCCESS != (rc = MPI_Finalize())) {
+        bad_func = "MPI_Finalize";
+        goto bail;
+    }
+
+bail:
     if (NULL != bad_func) {
         /* TODO add err msg */
         return SMGC_FAILURE_MPI;
