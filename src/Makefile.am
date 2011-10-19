@@ -15,4 +15,5 @@
 bin_PROGRAMS = supermagic
 
 supermagic_SOURCES = \
+smgc_err.h smgc_err.c \
 supermagic.c
