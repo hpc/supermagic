@@ -19,6 +19,9 @@
 #include <stdio.h>
 
 #include "smgc_constants.h"
+#include "smgc_mpi.h"
+#include "smgc_err.h"
+
 #include "mpi.h"
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -57,7 +60,8 @@ smgc_mpi_init(smgc_mpi_t *mpip,
 
 cleanup:
     if (NULL != bad_func) {
-        /* TODO add err msg */
+        smgc_err(__FILE__, __LINE__, "%s failure detected [mpi rc: %d (%s)]\n",
+                 bad_func, rc, smgc_mpi_rc2estr(rc));
         return SMGC_FAILURE_MPI;
     }
     return SMGC_SUCCESS;
