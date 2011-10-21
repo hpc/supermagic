@@ -36,7 +36,7 @@ print_banner(smgc_mpi_t *mpip)
     printf("numpe                  : %d\n", mpip->num_ranks);
     printf("bin bloat              : %d B\n", SMGC_DEFAULT_BIN_BLOAT);
     printf("default msg size       : %d B\n", smgc_mpi_get_default_msg_size());
-    printf("actual msg size        : %d B\n", 0);
+    printf("actual msg size        : %d B\n", mpip->msg_size);
     printf("default file size/rank : %d B\n", 0);
     printf("actual file size/rank  : %lu B\n", 0l);
     printf("num iters              : %d\n", 0);
@@ -57,7 +57,7 @@ main(int argc,
     int rc;
     smgc_mpi_t *smgc_mpi = NULL;
 
-    if (SMGC_SUCCESS != (rc = smgc_mpi_construct(&smgc_mpi))) {
+    if (SMGC_SUCCESS != (rc = smgc_mpi_construct(&smgc_mpi, argc, argv))) {
         /* TODO print smgc errstr */
         exit(EXIT_FAILURE);
     }

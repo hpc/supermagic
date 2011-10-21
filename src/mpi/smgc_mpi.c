@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <getopt.h>
 
 #include "smgc_base_constants.h"
 #include "smgc_base_util.h"
@@ -32,6 +33,46 @@
 /* default message sizez (in B) */
 #define SMGC_DEFAULT_MSG_SIZE 1024
 
+/* define integer constants for getop_long - NOTE: NOT valid characters */ 
+#define LONG_OPT_HELP         0x100
+#define LONG_OPT_USAGE        0x101
+#define LONG_OPT_MSG_SIZE     0x102
+
+/* options for mpi */
+static struct option long_options[] = {
+    {"mpi-message-size", required_argument, NULL, LONG_OPT_MSG_SIZE},
+    {NULL, 0, NULL, 0}
+};
+
+static int
+process_user_args(smgc_mpi_t *mpip,
+                  int argc,
+                  char **argv)
+{
+    int opt_index = 0, c = 0;
+
+    while (true) {
+        opt_index = 0;
+
+        c = getopt_long_only(argc, argv, "", long_options, &opt_index);
+
+        if (-1 == c) {
+            break;
+        }
+
+        switch (c) {
+            /* change message size for use in mpi communication */
+            case LONG_OPT_MSG_SIZE:
+                mpip->msg_size = (int)atoi(optarg);
+                break;
+
+            default:
+                return 0;
+                break;
+        }
+    }
+}
+
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 smgc_mpi_get_default_msg_size(void)
@@ -41,7 +82,9 @@ smgc_mpi_get_default_msg_size(void)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-smgc_mpi_construct(smgc_mpi_t **mpip)
+smgc_mpi_construct(smgc_mpi_t **mpip,
+                   int argc,
+                   char **argv)
 {
     smgc_mpi_t *smpip = NULL;
     int rc = SMGC_FAILURE;
@@ -72,6 +115,10 @@ smgc_mpi_construct(smgc_mpi_t **mpip)
     smpip->smp_id = SMGC_SMP_ID_INVALID;
     smpip->msg_size = 0;
     smpip->smp_comm = MPI_COMM_NULL;
+
+    /* now process user args */
+    process_user_args(smpip, argc, argv);
+
     *mpip = smpip;
     return SMGC_SUCCESS;
 

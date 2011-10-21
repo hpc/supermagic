@@ -33,7 +33,9 @@ typedef struct smgc_mpi_t {
 } smgc_mpi_t;
 
 int
-smgc_mpi_construct(smgc_mpi_t **mpip);
+smgc_mpi_construct(smgc_mpi_t **mpip,
+                   int argc,
+                   char **argv);
 
 int
 smgc_mpi_destruct(smgc_mpi_t **mpip);
