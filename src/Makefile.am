@@ -12,10 +12,23 @@
 # liability or responsibility for the use of this software.
 ################################################################################
 
+SUBDIRS = \
+base \
+mpi
+
 bin_PROGRAMS = supermagic
 
 supermagic_SOURCES = \
-smgc_err.h smgc_err.c \
-smgc_args.h smgc_args.c \
-smgc_mpi.h smgc_mpi.c \
 supermagic.c
+
+supermagic_CFLAGS = \
+-I$(top_srcdir)/src/base \
+-I$(top_srcdir)/src/mpi
+
+supermagic_LDFLAGS = \
+-L$(top_srcdir)/src/base \
+-L$(top_srcdir)/src/mpi
+
+supermagic_LDADD = \
+-lsmgc_base \
+-lsmgc_mpi

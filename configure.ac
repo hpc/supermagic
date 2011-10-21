@@ -26,9 +26,11 @@ dnl note: -Wall -Werror are automake options.  they are NOT compiler flags
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AM_CONFIG_HEADER([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 dnl checks for programs.
 dnl note that we are checking for mpicc first, the next check will verify CC
+dnl TODO add support for user-supplied CFLAGS
 AC_PROG_CC([mpicc cc])
 
 AM_PROG_CC_C_O
@@ -47,6 +49,7 @@ AC_LINK_IFELSE([
      AC_MSG_ERROR([$CC cannot compile MPI applications. cannot continue.])]
 )
 
+AC_PROG_LIBTOOL
 
 dnl checks for libraries.
 dnl none at this point
@@ -63,6 +66,8 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
 
 AC_CONFIG_FILES([Makefile
+                 src/base/Makefile
+                 src/mpi/Makefile
                  src/Makefile])
 
 AC_OUTPUT
