@@ -1,5 +1,5 @@
-/* Copyright (c) 2010-2011 Los Alamos National Security, LLC.
- *                         All rights reserved.
+/* Copyright (c) 2011 Los Alamos National Security, LLC.
+ *                    All rights reserved.
  *
  * This program was prepared by Los Alamos National Security, LLC at Los Alamos
  * National Laboratory (LANL) under contract No. DE-AC52-06NA25396 with the U.S.
@@ -11,13 +11,10 @@
  * liability or responsibility for the use of this software.
  */
 
-#ifndef SMGC_ERR_INCLUDED
-#define SMGC_ERR_INCLUDED
+#ifndef SMGC_BASE_UTIL_INCLUDED
+#define SMGC_BASE_UTIL_INCLUDED
 
-void
-smgc_err(const char *file_name,
-         int lineno,
-         const char *fmt,
-         ...);
+char *
+smgc_get_time_str(void);
 
-#endif /* ifndef SMGC_ERR_INCLUDED */
+#endif /* ifndef SMGC_BASE_UTIL_INCLUDED */

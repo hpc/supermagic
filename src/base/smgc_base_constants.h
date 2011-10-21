@@ -11,29 +11,23 @@
  * liability or responsibility for the use of this software.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+/* @author Samuel K. Gutierrez - samuelREMOVEME@lanl.gov
+ * found a bug? have an idea? please let me know.
+ */
 
-#include <stdio.h>
-#include <stdarg.h>
+#ifndef SMGC_BASE_CONSTANTS_INCLUDED
+#define SMGC_BASE_CONSTANTS_INCLUDED
 
-#include "smgc_constants.h"
-#include "smgc_err.h"
+/* TODO: this needs to be a config option */
+/* 64MB binary bloat by default */ 
+#define SMGC_DEFAULT_BIN_BLOAT 1 << 26
 
-#define SMGC_ERR_PREFIX_STR ""PACKAGE_NAME" ERROR:"
+enum {
+    SMGC_SUCCESS = 0,
+    SMGC_FAILURE,
+    SMGC_FAILURE_MPI,
+    SMGC_FAILURE_OOR,
+    SMGC_FAILURE_INVALID_ARG
+} smgc_ret;
 
-void
-smgc_err(const char *file_name,
-         int lineno,
-         const char *fmt,
-         ...)
-{
-    va_list valist;
-    va_start(valist, fmt);
-    fprintf(stderr, "-[%s (%s: %d)]- ", SMGC_ERR_PREFIX_STR, file_name, lineno);
-    fflush(stderr);
-    vfprintf(stderr, fmt, valist);
-    fflush(stderr);
-    va_end(valist);
-}
+#endif /* ifndef SMGC_BASE_CONSTANTS_INCLUDED */

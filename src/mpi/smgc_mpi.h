@@ -1,0 +1,58 @@
+/* Copyright (c) 2010-2011 Los Alamos National Security, LLC.
+ *                         All rights reserved.
+ *
+ * This program was prepared by Los Alamos National Security, LLC at Los Alamos
+ * National Laboratory (LANL) under contract No. DE-AC52-06NA25396 with the U.S.
+ * Department of Energy (DOE). All rights in the program are reserved by the DOE
+ * and Los Alamos National Security, LLC. Permission is granted to the public to
+ * copy and use this software without charge, provided that this Notice and any
+ * statement of authorship are reproduced on all copies. Neither the U.S.
+ * Government nor LANS makes any warranty, express or implied, or assumes any
+ * liability or responsibility for the use of this software.
+ */
+
+#ifndef SMGC_MPI_INCLUDED
+#define SMGC_MPI_INCLUDED
+
+#include <stdbool.h>
+
+#include "mpi.h"
+
+#define SMGC_RANK_INVALID -1
+#define SMGC_SMP_ID_INVALID -1
+#define SMGC_RANK_ZERO 0
+
+typedef struct smgc_mpi_t {
+    char host[MPI_MAX_PROCESSOR_NAME];
+    char *start_time;
+    int rank;
+    int num_ranks;
+    int smp_id;
+    MPI_Comm smp_comm;
+    int msg_size;
+} smgc_mpi_t;
+
+int
+smgc_mpi_construct(smgc_mpi_t **mpip);
+
+int
+smgc_mpi_destruct(smgc_mpi_t **mpip);
+
+char *
+smgc_mpi_rc2estr(int rc);
+
+bool
+smgc_mpi_initialized(void);
+
+int
+smgc_mpi_init(smgc_mpi_t *mpip,
+              int argc,
+              char **argv);
+
+int
+smgc_mpi_finalize(smgc_mpi_t *mpip);
+
+int
+smgc_mpi_get_default_msg_size(void);
+
+#endif /* ifndef SMGC_MPI_INCLUDED */

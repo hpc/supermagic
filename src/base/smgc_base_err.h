@@ -11,30 +11,13 @@
  * liability or responsibility for the use of this software.
  */
 
-#ifndef SMGC_MPI_INCLUDED
-#define SMGC_MPI_INCLUDED
+#ifndef SMGC_BASE_ERR_INCLUDED
+#define SMGC_BASE_ERR_INCLUDED
 
-#include "mpi.h"
+void
+smgc_err(const char *file_name,
+         int lineno,
+         const char *fmt,
+         ...);
 
-#define SMGC_RANK_INVALID -1
-#define SMGC_SMP_ID_INVALID -1
-
-typedef struct smgc_mpi_t {
-    int rank;
-    int num_ranks;
-    int smp_id;
-    MPI_Comm smp_comm;
-} smgc_mpi_t;
-
-char *
-smgc_mpi_rc2estr(int rc);
-
-int
-smgc_mpi_init(smgc_mpi_t *mpip,
-              int argc,
-              char **argv);
-
-int
-smgc_mpi_finalize(smgc_mpi_t *mpip);
-
-#endif /* ifndef SMGC_MPI_INCLUDED */
+#endif /* ifndef SMGC_BASE_ERR_INCLUDED */
