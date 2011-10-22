@@ -33,7 +33,7 @@
 /* default message sizez (in B) */
 #define SMGC_DEFAULT_MSG_SIZE 1024
 
-/* define integer constants for getop_long - NOTE: NOT valid characters */ 
+/* define integer constants for getop_long_only - NOTE: NOT valid characters */
 #define LONG_OPT_HELP         0x100
 #define LONG_OPT_USAGE        0x101
 #define LONG_OPT_MSG_SIZE     0x102
@@ -43,6 +43,44 @@ static struct option long_options[] = {
     {"mpi-message-size", required_argument, NULL, LONG_OPT_MSG_SIZE},
     {NULL, 0, NULL, 0}
 };
+
+void
+smgc_base_util_freeargv(char **argv)
+{
+    char **tmp;
+    if (NULL == argv) return;
+    for (tmp = argv; NULL != *tmp; ++tmp) {
+        free(*tmp);
+        *tmp = NULL;
+    }
+    free(argv);
+}
+
+char **
+smgc_base_util_dupargv(int argc,
+                       char **argv)
+{
+    char **dup = NULL;
+    int i;
+
+    if (NULL == argv) return NULL;
+
+    /* allocate one extra to cap with NULL */
+    if (NULL == (dup = (char **)calloc(argc + 1, sizeof(char *)))) {
+        smgc_err(__FILE__, __LINE__, "out of resources");
+        return NULL;
+    }
+    for (i = 0; NULL != argv[i]; ++i) {
+            int len = strlen(argv[i]) + 1;
+            if (NULL == (dup[i] = calloc(len, sizeof(char *)))) {
+                smgc_base_util_freeargv(dup);
+                return NULL;
+            }
+            (void)memmove(dup[i], argv[i], len);
+    }
+    dup[i] = NULL;
+    return dup;
+}
 
 static int
 process_user_args(smgc_mpi_t *mpip,
@@ -116,8 +154,10 @@ smgc_mpi_construct(smgc_mpi_t **mpip,
     smpip->msg_size = 0;
     smpip->smp_comm = MPI_COMM_NULL;
 
+    char **argvdup = smgc_base_util_dupargv(argc, argv);
+
     /* now process user args */
-    process_user_args(smpip, argc, argv);
+    process_user_args(smpip, argc, argvdup);
 
     *mpip = smpip;
     return SMGC_SUCCESS;
@@ -136,7 +176,7 @@ smgc_mpi_destruct(smgc_mpi_t **mpip)
     if (NULL == mpip) return SMGC_FAILURE_INVALID_ARG;
 
     smpip = *mpip;
-    
+
     if (NULL != smpip->start_time) {
         free(smpip->start_time);
         smpip->start_time = NULL;
