@@ -44,6 +44,7 @@ static struct option long_options[] = {
     {NULL, 0, NULL, 0}
 };
 
+/* ////////////////////////////////////////////////////////////////////////// */
 void
 smgc_base_util_freeargv(char **argv)
 {
@@ -56,6 +57,7 @@ smgc_base_util_freeargv(char **argv)
     free(argv);
 }
 
+/* ////////////////////////////////////////////////////////////////////////// */
 char **
 smgc_base_util_dupargv(int argc,
                        char **argv)
@@ -82,12 +84,15 @@ smgc_base_util_dupargv(int argc,
     return dup;
 }
 
+/* ////////////////////////////////////////////////////////////////////////// */
 static int
 process_user_args(smgc_mpi_t *mpip,
                   int argc,
                   char **argv)
 {
     int opt_index = 0, c = 0;
+    /* suppress getopt_long_only error messages */
+    opterr = 0;
 
     while (true) {
         opt_index = 0;
@@ -99,16 +104,20 @@ process_user_args(smgc_mpi_t *mpip,
         }
 
         switch (c) {
+            /* check for unknown option or missing argument */
+            case '?':
+                printf("? %d\n", optopt);
+                break;
             /* change message size for use in mpi communication */
-            case LONG_OPT_MSG_SIZE:
+            case (int)LONG_OPT_MSG_SIZE:
                 mpip->msg_size = (int)atoi(optarg);
                 break;
-
             default:
-                return 0;
+                return SMGC_FAILURE;
                 break;
         }
     }
+    return SMGC_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
