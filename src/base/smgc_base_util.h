@@ -17,4 +17,11 @@
 char *
 smgc_get_time_str(void);
 
+char **
+smgc_base_util_dupargv(int argc,
+                       char **argv);
+
+void
+smgc_base_util_freeargv(char **argv);
+
 #endif /* ifndef SMGC_BASE_UTIL_INCLUDED */

@@ -55,7 +55,8 @@ dnl checks for libraries.
 dnl none at this point
 
 dnl checks for header files.
-AC_CHECK_HEADERS([inttypes.h limits.h stdint.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([\
+time.h inttypes.h limits.h stdint.h stdlib.h string.h unistd.h])
 
 dnl checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T

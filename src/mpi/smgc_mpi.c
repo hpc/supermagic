@@ -44,45 +44,6 @@ static struct option long_options[] = {
     {NULL, 0, NULL, 0}
 };
 
-/* ////////////////////////////////////////////////////////////////////////// */
-void
-smgc_base_util_freeargv(char **argv)
-{
-    char **tmp;
-    if (NULL == argv) return;
-    for (tmp = argv; NULL != *tmp; ++tmp) {
-        free(*tmp);
-        *tmp = NULL;
-    }
-    free(argv);
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-char **
-smgc_base_util_dupargv(int argc,
-                       char **argv)
-{
-    char **dup = NULL;
-    int i;
-
-    if (NULL == argv) return NULL;
-
-    /* allocate one extra to cap with NULL */
-    if (NULL == (dup = (char **)calloc(argc + 1, sizeof(char *)))) {
-        smgc_err(__FILE__, __LINE__, "out of resources");
-        return NULL;
-    }
-    for (i = 0; NULL != argv[i]; ++i) {
-            int len = strlen(argv[i]) + 1;
-            if (NULL == (dup[i] = calloc(len, sizeof(char *)))) {
-                smgc_base_util_freeargv(dup);
-                return NULL;
-            }
-            (void)memmove(dup[i], argv[i], len);
-    }
-    dup[i] = NULL;
-    return dup;
-}
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
