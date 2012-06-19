@@ -46,14 +46,14 @@ o BUILD EXAMPLES
 #include <sys/stat.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <signal.h>
+#include <sys/time.h>
 
 #include "mpi.h"
 
 /* only include the following if building with cell support */
 #if WITH_CELL_TESTS == 1
 #include "cell_check/cell_check.h"
-#include "signal.h"
-#include "sys/time.h"
 #endif
 
 /* message size defaults */
@@ -64,6 +64,9 @@ o BUILD EXAMPLES
 #define SMGC_SMLR_MSG_SIZE  (32  * 1024)
 #define SMGC_SMLST_MSG_SIZE (1)
 #define SMGC_DFLT_MSG_SIZE  (512 * 1024)
+
+/* mpi message timeout in seconds */
+#define MSG_TIMEOUT 180
 
 /* some mpi message size defaults that can be set at compile time */
 #ifdef SLOW
@@ -82,13 +85,31 @@ o BUILD EXAMPLES
     #define SMGC_MSG_SIZE SMGC_DFLT_MSG_SIZE
 #endif
 
-/* binary bloat size (B) - default is 64 MB */
+/* binary bloat size (B) - default is 1 MB */
 #ifndef SMGC_BIN_SIZE
-    #define SMGC_BIN_SIZE (1 << 26)
+    #define SMGC_BIN_SIZE (1 << 20)
 #elif defined SMGC_BIN_SIZE && (SMGC_BIN_SIZE) <= 0
     #undef SMGC_BIN_SIZE
     #define SMGC_BIN_SIZE 1
 #endif
+
+/* messaging time macros */
+#define TIMER_ENABLE(itimer)                                                   \
+do {                                                                           \
+    (itimer).it_value.tv_sec = MSG_TIMEOUT;                                    \
+    (itimer).it_value.tv_usec = 0;                                             \
+    (itimer).it_interval = (itimer).it_value;                                  \
+    signal(SIGALRM, &kill_mpi_messaging);                                      \
+    setitimer(ITIMER_REAL, &(itimer), NULL);                                   \
+} while (0)
+
+#define TIMER_DISABLE(itimer)                                                  \
+do {                                                                           \
+        (itimer).it_value.tv_sec = 0;                                          \
+        (itimer).it_value.tv_usec = 0;                                         \
+        (itimer).it_interval = (itimer).it_value;                              \
+        setitimer(ITIMER_REAL, &(itimer), NULL);                               \
+} while (0)
 
 /* invalid color - all valid colors are expected to be positive values */
 #define SMGC_COLOR_INVALID -1
@@ -212,6 +233,13 @@ do {                                                                           \
 } while (0)
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/* globals                                                                    */
+/* ////////////////////////////////////////////////////////////////////////// */
+static int glob_loop_iter = 0;
+static int glob_l_neighbor = 0;
+static int glob_r_neighbor = 0;
+
+/* ////////////////////////////////////////////////////////////////////////// */
 /* static forward declarations - typedefs - etc.                              */
 /* ////////////////////////////////////////////////////////////////////////// */
 /* test function pointer */
@@ -305,6 +333,9 @@ n_to_n_io(void);
 
 static int
 io_stats(double_int_t, char *, int);
+
+static void
+kill_mpi_messaging(int sig);
 
 #if WITH_CELL_TESTS == 1
 static int
@@ -1087,6 +1118,23 @@ stat_paths(void)
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static void
+kill_mpi_messaging(int sig)
+{
+    /* no check in error path  - hope for the best */
+    gethostname(host_name_buff, SMGC_HOST_NAME_MAX - 1);
+    host_name_buff[SMGC_HOST_NAME_MAX - 1] = '\0';
+
+    fprintf(stderr, "\n########## HANG DETECTED"
+            "[on loop iteration: %d] %d (%s) ==> %d (%s) ==> %d (%s) "
+            "##########\n",
+            glob_loop_iter, glob_l_neighbor, get_rhn(glob_l_neighbor), my_rank,
+            host_name_buff, glob_r_neighbor, get_rhn(glob_r_neighbor));
+
+    exit(EXIT_FAILURE);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 #if WITH_CELL_TESTS == 1
 
 /* in seconds */
@@ -1655,6 +1703,7 @@ small_all_to_all_ptp(void)
     char *send_char_buff = NULL;
     char *recv_char_buff = NULL;
     char *del            = "\b\b\b\b\b\b\b\b\b\b\b\b\b";
+    struct itimerval itimer;
     MPI_Status status;
 
     send_char_buff = (char *)calloc(buff_size, sizeof(char));
@@ -1679,11 +1728,13 @@ small_all_to_all_ptp(void)
             }
         }
 
+        TIMER_ENABLE(itimer);
         mpi_ret_code = MPI_Sendrecv(send_char_buff, buff_size, MPI_CHAR,
                                     r_neighbor, i, recv_char_buff, buff_size,
                                     MPI_CHAR, l_neighbor, i, MPI_COMM_WORLD,
                                     &status);
         SMGC_MPICHK(mpi_ret_code, out);
+        TIMER_DISABLE(itimer);
     }
 
     /* all is well */
