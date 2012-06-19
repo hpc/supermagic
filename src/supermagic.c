@@ -1125,7 +1125,7 @@ kill_mpi_messaging(int sig)
     gethostname(host_name_buff, SMGC_HOST_NAME_MAX - 1);
     host_name_buff[SMGC_HOST_NAME_MAX - 1] = '\0';
 
-    fprintf(stderr, "\n########## HANG DETECTED"
+    fprintf(stderr, "\n########## HANG DETECTED "
             "[on loop iteration: %d] %d (%s) ==> %d (%s) ==> %d (%s) "
             "##########\n",
             glob_loop_iter, glob_l_neighbor, get_rhn(glob_l_neighbor), my_rank,
@@ -1691,6 +1691,15 @@ error:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static void
+reset_globs(void)
+{
+    glob_loop_iter = 0;
+    glob_l_neighbor = 0;
+    glob_r_neighbor = 0;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 static int
 small_all_to_all_ptp(void)
 {
@@ -1706,6 +1715,8 @@ small_all_to_all_ptp(void)
     struct itimerval itimer;
     MPI_Status status;
 
+    reset_globs();
+
     send_char_buff = (char *)calloc(buff_size, sizeof(char));
     SMGC_MEMCHK(send_char_buff, out);
     recv_char_buff = (char *)calloc(buff_size, sizeof(char));
@@ -1714,7 +1725,7 @@ small_all_to_all_ptp(void)
     SMGC_MPF("       message size: %d B\n", buff_size);
     SMGC_MPF("       mpi_comm_world: all to all - ");
 
-    for (i = 1; i <= num_ranks; ++i) {
+    for (i = 1; i <= num_ranks; ++i, glob_loop_iter = i) {
         SMGC_MPF("%s%06d/%06d%s", 1 == i ? "" : del, i, num_ranks,
                  num_ranks == i ? "\n" : "");
 
@@ -1727,6 +1738,9 @@ small_all_to_all_ptp(void)
                 l_neighbor = num_ranks - 1;
             }
         }
+
+        glob_l_neighbor = l_neighbor;
+        glob_r_neighbor = r_neighbor;
 
         TIMER_ENABLE(itimer);
         mpi_ret_code = MPI_Sendrecv(send_char_buff, buff_size, MPI_CHAR,
