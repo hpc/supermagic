@@ -1,0 +1,114 @@
+#!/bin/bash
+
+################################################################################
+# Copyright (c) 2012      Los Alamos National Security, LLC.
+#                         All rights reserved.
+#
+# This program was prepared by Los Alamos National Security, LLC at Los Alamos
+# National Laboratory (LANL) under contract No. DE-AC52-06NA25396 with the U.S.
+# Department of Energy (DOE). All rights in the program are reserved by the DOE
+# and Los Alamos National Security, LLC. Permission is granted to the public to
+# copy and use this software without charge, provided that this Notice and any
+# statement of authorship are reproduced on all copies. Neither the U.S.
+# Government nor LANS makes any warranty, express or implied, or assumes any
+# liability or responsibility for the use of this software.
+################################################################################
+
+# author: samuel k. gutierrez
+# last updated: Tue Jun 19 21:51:50 MDT 2012
+
+PROG_NAME="crunch-hang"
+PROG_VER="0.1"
+MAGIC_STR="########## HANG DETECTED"
+
+# example output string from supermagic hang detection
+# 1          2    3        4  5    6          7
+# ########## HANG DETECTED on loop iteration: 10 0 (a) ==> 1 (b) ==> 2 (c)
+
+usage()
+{
+    echo -e "usage: $PROG_NAME /path/to/hang-output-file"
+}
+
+################################################################################
+# output will be something like: "on loop iteration: 10"
+# $1: file name
+lowest_iter_string()
+{
+    res=`cat "$1" | grep "$MAGIC_STR" | sort -n -k 7 | head -n 1 | \
+    egrep -o "on loop iteration: [0-9]+ "`
+    echo "$res"
+}
+
+################################################################################
+# $1: file name
+# $2: target string
+get_num_instances()
+{
+    echo `grep -c "$2" "$1"`
+}
+
+################################################################################
+# $1: file name
+# $2: target string
+disp_bad_paths()
+{
+    echo "### key: rank (name) ==> rank (name) ==> rank (name) ###"
+    echo "one or more of the following paths appear to be broken:"
+    cat "$1" | grep "$MAGIC_STR" | sort -n -k 7 | head -n "$2" | \
+    cut -d ' ' -f 8-15
+}
+
+################################################################################
+crunch()
+{
+    if [[ -r $1 ]]; then
+        lis=$(lowest_iter_string "$1")
+        ni=$(get_num_instances "$1" "$lis")
+        disp_bad_paths "$1" "$ni"
+        return 0
+    else
+        echo "\"$1\" does not exist or is not readable."
+        usage
+        return 1
+    fi
+}
+
+################################################################################
+SHORTOPTS="hv"
+LONGOPTS="help,version"
+
+ARGS=$(getopt -s bash --options $SHORTOPTS  \
+       --longoptions $LONGOPTS --name $PROG_NAME -- "$@")
+
+eval set -- "$ARGS"
+
+while true; do
+    case $1 in
+        -h|--help)
+            usage
+            exit 0;
+            ;;
+        -v|--version)
+            echo "$PROG_VER"
+            exit 0;
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            shift
+            break
+            ;;
+    esac
+    shift
+done
+
+if [[ $# == 0 ]]; then
+    usage
+    exit 1;
+else
+    crunch $1
+    exit $?;
+fi
