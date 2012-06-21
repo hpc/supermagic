@@ -15,7 +15,7 @@
 ################################################################################
 
 # author: samuel k. gutierrez
-# last updated: Tue Jun 19 21:51:50 MDT 2012
+# last updated: Thu Jun 21 13:47:46 MDT 2012
 
 PROG_NAME="crunch-hang"
 PROG_VER="0.1"
@@ -27,7 +27,13 @@ MAGIC_STR="########## HANG DETECTED"
 
 usage()
 {
-    echo -e "usage: $PROG_NAME /path/to/hang-output-file"
+cat << EOF
+Usage:
+    $PROG_NAME /path/to/hang-output-file
+Options:
+    -v|--version
+    -h|--help
+EOF
 }
 
 ################################################################################
@@ -35,7 +41,7 @@ usage()
 # $1: file name
 lowest_iter_string()
 {
-    res=`cat "$1" | grep "$MAGIC_STR" | sort -n -k 7 | head -n 1 | \
+    local res=`cat "$1" | grep "$MAGIC_STR" | sort -n -k 7 | head -n 1 | \
     egrep -o "on loop iteration: [0-9]+ "`
     echo "$res"
 }
@@ -51,12 +57,59 @@ get_num_instances()
 ################################################################################
 # $1: file name
 # $2: target string
-disp_bad_paths()
+get_bad_paths()
 {
-    echo "### key: rank (name) ==> rank (name) ==> rank (name) ###"
-    echo "one or more of the following paths appear to be broken:"
     cat "$1" | grep "$MAGIC_STR" | sort -n -k 7 | head -n "$2" | \
     cut -d ' ' -f 8-15
+}
+
+################################################################################
+# $1: file name
+# $2: target string
+disp_bad_paths()
+{
+    local bad_paths=$(get_bad_paths "$1" "$2")
+    echo "### "$PROG_NAME" "$PROG_VER" ###"
+    echo "### key: rank (name) ==> rank (name) ==> rank (name) ###"
+    echo "one or more of the following paths appear to be broken:"
+    echo -e "$bad_paths"
+    the_bad_path=$(calc_bad_path "$bad_paths")
+    echo "the following ranks caused the hang: $the_bad_path"
+}
+
+################################################################################
+# $1: bad paths
+# will be something like:
+# 1    2         3   4   5                     6   7   8
+# 1810 (UNKNOWN) ==> 239 (ceb180a.localdomain) ==> 692 (UNKNOWN)
+# 239 (UNKNOWN) ==> 692 (ceb160a.localdomain) ==> 1145 (UNKNOWN)
+calc_bad_path()
+{
+    local i=0 j=0
+    local bad_paths=(0)
+    local path_pairs
+    local bad_path
+    # work on each line and store the path
+    while read path_i; do
+        bad_paths[$i]=`echo "$path_i" | cut -d ' ' -f 1,4,7`
+        (( i += 1 ))
+    done < <(echo -e "$1")
+    # store the path pairs    
+    for ((i = 0; i < ${#bad_paths[*]}; i++ )); do
+        path_pairs[$j]=`echo "${bad_paths[$i]}" | cut -d ' ' -f 1-2`
+        (( j++ ))
+        path_pairs[$j]=`echo "${bad_paths[$i]}" | cut -d ' ' -f 2-3`
+        (( j++ ))
+    done
+    # find the bad one
+    # output will be something like (before processing):
+    # 2 239 692
+    # 1 692 1145
+    # 1 1810 239
+    # in this example, the bad path is between ranks 239 and 692
+    bad_path=`printf "%s\n" "${path_pairs[@]}" | sort -n | uniq -c | \
+              sed 's/^\s*//g' | head -n 1 | cut -d ' ' -f 2-3`
+    echo $bad_path
 }
 
 ################################################################################
@@ -75,15 +128,7 @@ crunch()
 }
 
 ################################################################################
-SHORTOPTS="hv"
-LONGOPTS="help,version"
-
-ARGS=$(getopt -s bash --options $SHORTOPTS  \
-       --longoptions $LONGOPTS --name $PROG_NAME -- "$@")
-
-eval set -- "$ARGS"
-
-while true; do
+for i in $*; do
     case $1 in
         -h|--help)
             usage
@@ -97,12 +142,11 @@ while true; do
             shift
             break
             ;;
-        *)
-            shift
-            break
+        -?|--?)
+            echo "unknown option: \"$i\""
+            exit 1;
             ;;
     esac
-    shift
 done
 
 if [[ $# == 0 ]]; then
