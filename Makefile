@@ -19,4 +19,4 @@ SHELL  = /bin/sh
 all:
 	@echo "### running configure and make for you ###"
 	@echo ""
-	./configure && make
+	@./configure && make
