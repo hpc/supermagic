@@ -22,17 +22,20 @@ PROG_VER="0.1"
 MAGIC_STR="########## HANG DETECTED"
 
 # example output string from supermagic hang detection
-# 1          2    3        4  5    6          7
+# 1          2    3        4  5    6          7  8 9   10  1112  13  1415
 # ########## HANG DETECTED on loop iteration: 10 0 (a) ==> 1 (b) ==> 2 (c)
 
 usage()
 {
 cat << EOF
 Usage:
-    $PROG_NAME /path/to/hang-output-file
+    $PROG_NAME [OPTION] [/PATH/TO/HANG-OUTPUT-FILE]
 Options:
     -v|--version
     -h|--help
+About:
+    $PROG_NAME processes supermagic hang detection output and attempts to
+    identify the nodes responsible for the hang.
 EOF
 }
 
@@ -42,7 +45,7 @@ EOF
 lowest_iter_string()
 {
     local res=`cat "$1" | grep "$MAGIC_STR" | sort -n -k 7 | head -n 1 | \
-    egrep -o "on loop iteration: [0-9]+ "`
+    egrep -o "on loop iteration: [0-9]+"`
     echo "$res"
 }
 
@@ -73,12 +76,13 @@ disp_bad_paths()
     echo "### key: rank (name) ==> rank (name) ==> rank (name) ###"
     echo "one or more of the following paths appear to be broken:"
     echo -e "$bad_paths"
-    the_bad_path=$(calc_bad_path "$bad_paths")
-    echo "the following ranks caused the hang: $the_bad_path"
+    the_bad_path=$(calc_bad_path "$1" "$bad_paths")
+    echo -e "the following ranks caused the hang:\n$the_bad_path"
 }
 
 ################################################################################
-# $1: bad paths
+# $1: file name
+# $2: bad paths
 # will be something like:
 # 1    2         3   4   5                     6   7   8
 # 1810 (UNKNOWN) ==> 239 (ceb180a.localdomain) ==> 692 (UNKNOWN)
@@ -93,8 +97,8 @@ calc_bad_path()
     while read path_i; do
         bad_paths[$i]=`echo "$path_i" | cut -d ' ' -f 1,4,7`
         (( i += 1 ))
-    done < <(echo -e "$1")
-    # store the path pairs    
+    done < <(echo -e "$2")
+    # store the path pairs
     for ((i = 0; i < ${#bad_paths[*]}; i++ )); do
         path_pairs[$j]=`echo "${bad_paths[$i]}" | cut -d ' ' -f 1-2`
         (( j++ ))
@@ -107,9 +111,18 @@ calc_bad_path()
     # 1 692 1145
     # 1 1810 239
     # in this example, the bad path is between ranks 239 and 692
-    bad_path=`printf "%s\n" "${path_pairs[@]}" | sort -n | uniq -c | \
-              sed 's/^\s*//g' | head -n 1 | cut -d ' ' -f 2-3`
-    echo $bad_path
+    local bad_path=`printf "%s\n" "${path_pairs[@]}" | sort -n | uniq -c | \
+                    sed 's/^\s*//g' | head -n 1 | cut -d ' ' -f 2-3`
+    # at this point $bad_path has something like:
+    # 239 692
+    # now we have to find the full path within the file using the two ranks
+    # that were called out in $bad_path.
+    local full_path=`cat "$1" | egrep '0 \(\w+[.]*\w*\) ==> 1 \(\w+[.]*\w*\)'`
+    # at this point $full_path has the entire path string. we need to prep it
+    # some more. so, do that...
+    full_path=`echo $full_path | egrep -o \
+    '[0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\)'`
+    echo $full_path
 }
 
 ################################################################################
