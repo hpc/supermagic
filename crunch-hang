@@ -77,7 +77,8 @@ disp_bad_paths()
     echo "one or more of the following paths appear to be broken:"
     echo -e "$bad_paths"
     the_bad_path=$(calc_bad_path "$1" "$bad_paths")
-    echo -e "the following ranks caused the hang:\n$the_bad_path"
+    echo -e \
+    "one or more of the the following ranks caused the hang:\n$the_bad_path"
 }
 
 ################################################################################
@@ -112,12 +113,15 @@ calc_bad_path()
     # 1 1810 239
     # in this example, the bad path is between ranks 239 and 692
     local bad_path=`printf "%s\n" "${path_pairs[@]}" | sort -n | uniq -c | \
-                    sed 's/^\s*//g' | head -n 1 | cut -d ' ' -f 2-3`
+                    sed 's/^\s*//g' | sort -nr | head -n 1 | cut -d ' ' -f 2-3`
+    bone=`echo $bad_path | cut -d ' ' -f 1`
+    btwo=`echo $bad_path | cut -d ' ' -f 2`
     # at this point $bad_path has something like:
     # 239 692
     # now we have to find the full path within the file using the two ranks
     # that were called out in $bad_path.
-    local full_path=`cat "$1" | egrep '0 \(\w+[.]*\w*\) ==> 1 \(\w+[.]*\w*\)'`
+    local full_path=`cat "$1" | \
+          egrep "==> "$bone" \(\w+[.]*\w*\) ==> "$btwo" \(\w+[.]*\w*\)"`
     # at this point $full_path has the entire path string. we need to prep it
     # some more. so, do that...
     full_path=`echo $full_path | egrep -o \
