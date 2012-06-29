@@ -44,7 +44,8 @@ EOF
 # $1: file name
 lowest_iter_string()
 {
-    local res=`cat "$1" | grep "$MAGIC_STR" | sort -n -k 7 | head -n 1 | \
+    local fname="$1"
+    local res=`cat "$fname" | grep "$MAGIC_STR" | sort -n -k 7 | head -n 1 | \
     egrep -o "on loop iteration: [0-9]+"`
     echo "$res"
 }
@@ -71,14 +72,16 @@ get_bad_paths()
 # $2: target string
 disp_bad_paths()
 {
-    local bad_paths=$(get_bad_paths "$1" "$2")
+    local fname="$1"
+    local tstring="$2"
+    local bad_paths=$(get_bad_paths "$fname" "$tstring")
     echo "### "$PROG_NAME" "$PROG_VER" ###"
     echo "### key: rank (name) ==> rank (name) ==> rank (name) ###"
     echo "one or more of the following paths appear to be broken:"
     echo -e "$bad_paths"
-    the_bad_path=$(calc_bad_path "$1" "$bad_paths")
+    the_bad_path=$(calc_bad_path "$fname" "$bad_paths")
     echo -e \
-    "one or more of the the following ranks caused the hang:\n$the_bad_path"
+    "one or more of the the following ranks caused the hang:\n@$the_bad_path@"
 }
 
 ################################################################################
@@ -134,6 +137,11 @@ crunch()
 {
     if [[ -r $1 ]]; then
         lis=$(lowest_iter_string "$1")
+        # no hang output, no need to continue
+        if [[ "x$lis" == "x" ]]; then
+            echo "### NO HANG ###"
+            exit 0;
+        fi
         ni=$(get_num_instances "$1" "$lis")
         disp_bad_paths "$1" "$ni"
         return 0
@@ -152,7 +160,7 @@ for i in $*; do
             exit 0;
             ;;
         -v|--version)
-            echo "$PROG_VER"
+            echo "$PROG_NAME $PROG_VER"
             exit 0;
             ;;
         --)

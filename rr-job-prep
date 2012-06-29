@@ -1,0 +1,208 @@
+#!/bin/bash
+
+################################################################################
+# Copyright (c) 2012      Los Alamos National Security, LLC.
+#                         All rights reserved.
+#
+# This program was prepared by Los Alamos National Security, LLC at Los Alamos
+# National Laboratory (LANL) under contract No. DE-AC52-06NA25396 with the U.S.
+# Department of Energy (DOE). All rights in the program are reserved by the DOE
+# and Los Alamos National Security, LLC. Permission is granted to the public to
+# copy and use this software without charge, provided that this Notice and any
+# statement of authorship are reproduced on all copies. Neither the U.S.
+# Government nor LANS makes any warranty, express or implied, or assumes any
+# liability or responsibility for the use of this software.
+################################################################################
+
+# author: samuel k. gutierrez
+# last updated: Fri Jun 29 09:03:07 MDT 2012
+
+################################################################################
+################################################################################
+# ONLY TESTED ON RR-LIKE SYSTEMS WITH PBS!
+################################################################################
+################################################################################
+
+PROG_NAME="rr-job-prep"
+PROG_VER="0.1"
+CRUNCH_NAME="crunch-hang"
+
+# this will eventually be set to a real value, but set to a safe default
+tmp_base="/tmp"
+jobid="unknown"
+
+ALL_NODES_FN="ALL"
+SUBSET_NODES_FN="SUB"
+# in seconds
+#KILL_TIMEOUT=360
+KILL_TIMEOUT=4
+
+################################################################################
+usage()
+{
+cat << EOF
+Usage:
+    $PROG_NAME [OPTION] [/PATH/TO/SUPERMAGIC] [/PATH/TO/CRUNCH-HANG] [MIN PES]
+Options:
+    -v|--version
+    -h|--help
+About:
+    $PROG_NAME does stuff... 
+EOF
+}
+
+################################################################################
+run_and_pray()
+{
+    ( mpirun --hostfile "$tmp_base/$SUBSET_NODES_FN" \
+    "$1" -t small_all_to_all_ptp 2>&1 | tee "$tmp_base/OUT" 2>&1 > /dev/null )&
+    cmd_pid=$!
+
+    # setup the killer
+    ( sleep $KILL_TIMEOUT && \
+      kill -9 $cmd_pid )&
+    killer_pid=$!
+
+    wait $cmd_pid &> /dev/null
+    wait_status=$?
+
+    if [[ $wait_status -ne 0 ]]; then 
+        echo "### RUN TIMEOUT EXCEEDED. this may mean we can't launch mpi jobs."
+        echo "### please contact the system administrators."
+        echo "### JOBID: $jobid"
+        # not much else we can do here...
+        exit 1;
+    else
+        # "normal" exit, so clean up - we still don't know if things worked.
+        disown $killer_pid
+        kill $killer_pid &> /dev/null
+    fi
+
+    local crunch_out=`$2 "$tmp_base/OUT"`
+
+    if [[ "x$crunch_out" == "x### NO HANG ###" ]]; then
+        echo "### successful run - found a good set!"
+        return 0;
+    else
+        # no love. we launched, but the job hung in messaging :-(.  update the
+        # hostfile and return 1 - indicating that we failed to find a good set.
+        return 1;
+    fi
+}
+
+################################################################################
+find_good_node_set()
+{
+    echo "### starting - cross your fingers ###"
+    echo
+    run_and_pray "$1" "$2" "$3"
+    while [[ $? == 1 ]]; do
+        echo "### trying another set..."
+        run_and_pray "$1" "$2" "$3"
+        # we don't want to overwhelm the system, so take a little break
+        sleep 5
+    done
+}
+
+################################################################################
+hello()
+{
+cat << EOF
+### $PROG_NAME $PROG_VER ###
+EOF
+}
+
+################################################################################
+init()
+{
+    echo "# starting init..."
+    jobid="$PBS_JOBID"
+    tmp_base=`mktemp -d -t SMGCXXXX`
+    echo "# temp directory: $tmp_base"
+    echo "# copying $PBS_NODEFILE file to $tmp_base"
+    # save a copy of the full list of nodes and start with a full set
+    cp $PBS_NODEFILE "$tmp_base/$ALL_NODES_FN" && \
+    cp "$tmp_base/$ALL_NODES_FN" "$tmp_base/$SUBSET_NODES_FN"
+    if [[ $? != 0 ]]; then
+        echo "cp failure!"
+        exit 1;
+    fi
+}
+
+################################################################################
+# $1: path to supermagic
+# $2: path to crunch-hang
+# will exit with status 1 if app/env prerequisites are not met.
+sanity()
+{
+    local the_base=$(basename "$1")
+    # check for mpirun
+    type -p "mpirun" 2>&1 > /dev/null
+    local tstat=$?
+    if [[ $tstat -eq 1 ]]; then
+        echo "mpirun not found. cannot continue."
+        exit 1;
+    fi
+    # check for supermagic - at some point provide better detection
+    if [[ "$the_base" == "supermagic" ]]; then
+        # okay, the name is fine, but can we exec the thing?
+        if [[ ! -x "$1" ]]; then
+            echo "cannot continue: cannot execute "$1""
+            exit 1;
+        fi
+    else
+        echo -e "could not find supermagic:\n"$1" is not supermagic."
+        exit 1;
+    fi
+    # check crunch-hang
+    if [[ -x "$2" ]]; then
+        local out_str=`"$2" --version`
+        local cname=`echo "$out_str" | cut -f 1 -d ' '`
+        if [[ "x$cname" != "x$CRUNCH_NAME" ]]; then
+            echo -e "valid $CRUNCH_NAME not found:\n"$2" cannot be used."
+            exit 1;
+        fi
+    else
+        echo -e "could not execute crunch-hang:\n"$2"."
+        exit 1;
+    fi
+    # is PBS_NODEFILE set? we need this to construct a node list.
+    if [[ "x$PBS_NODEFILE" == "x" ]]; then
+        echo "PBS_NODEFILE not set. this environment used in "$PROG_NAME"."
+        exit 1;
+    fi
+}
+
+################################################################################
+for i in $*; do
+    case $1 in
+        -h|--help)
+            usage
+            exit 0;
+            ;;
+        -v|--version)
+            echo "$PROG_VER"
+            exit 0;
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -?|--?)
+            echo "unknown option: \"$i\""
+            exit 1;
+            ;;
+    esac
+done
+
+if [[ $# != 3 ]]; then
+    usage
+    exit 1;
+else
+    hello
+    init
+    sanity "$1" "$2"
+    # if we are here, let the games begin...
+    find_good_node_set "$1" "$2" "$3"
+    exit $?;
+fi
