@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011      Los Alamos National Security, LLC.
+# Copyright (c) 2011-2012 Los Alamos National Security, LLC.
 #                         All rights reserved.
 #
 # This program was prepared by Los Alamos National Security, LLC at Los Alamos
@@ -15,6 +15,4 @@
 bin_PROGRAMS = supermagic
 
 supermagic_SOURCES = \
-smgc_err.h smgc_err.c \
-smgc_mpi.h smgc_mpi.c \
 supermagic.c
