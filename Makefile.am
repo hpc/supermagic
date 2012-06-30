@@ -15,7 +15,7 @@
 bin_PROGRAMS = supermagic
 
 supermagic_SOURCES = \
-supermagic.c
+supermagic.h supermagic.c
 
 EXTRA_DIST = \
 Makefile.top AUTHORS README \
