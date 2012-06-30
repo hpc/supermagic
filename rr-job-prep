@@ -23,16 +23,16 @@
 ################################################################################
 ################################################################################
 
-PROG_NAME="rr-job-prep"
-PROG_VER="0.1"
-CRUNCH_NAME="crunch-hang"
+declare -r PROG_NAME="rr-job-prep"
+declare -r PROG_VER="0.1"
+declare -r CRUNCH_NAME="crunch-hang"
+declare -r ALL_NODES_FN="ALL"
+declare -r SUBSET_NODES_FN="SUB"
 
 # this will eventually be set to a real value, but set to a safe default
 tmp_base="/tmp"
 jobid="unknown"
 
-ALL_NODES_FN="ALL"
-SUBSET_NODES_FN="SUB"
 # in seconds
 #KILL_TIMEOUT=360
 KILL_TIMEOUT=4

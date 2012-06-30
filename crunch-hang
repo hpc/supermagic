@@ -17,9 +17,9 @@
 # author: samuel k. gutierrez
 # last updated: Thu Jun 21 13:47:46 MDT 2012
 
-PROG_NAME="crunch-hang"
-PROG_VER="0.1"
-MAGIC_STR="########## HANG DETECTED"
+declare -r PROG_NAME="crunch-hang"
+declare -r PROG_VER="0.1"
+declare -r MAGIC_STR="########## HANG DETECTED"
 
 # example output string from supermagic hang detection
 # 1          2    3        4  5    6          7  8 9   10  1112  13  1415
