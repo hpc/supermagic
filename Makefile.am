@@ -15,6 +15,9 @@
 SUBDIRS = src
 
 EXTRA_DIST = \
-AUTHORS README THANKS COPYRIGHT autogen ChangeLog \
-crunch-hang rr-job-prep
+Makefile.top AUTHORS README \
+THANKS COPYRIGHT autogen \
+ChangeLog crunch-hang rr-job-prep
 
+dist-hook:
+	ln -s Makefile.top $(distdir)/Makefile
