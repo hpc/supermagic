@@ -12,7 +12,10 @@
 # liability or responsibility for the use of this software.
 ################################################################################
 
-SUBDIRS = src
+bin_PROGRAMS = supermagic
+
+supermagic_SOURCES = \
+supermagic.c
 
 EXTRA_DIST = \
 Makefile.top AUTHORS README \

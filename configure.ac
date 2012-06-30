@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011      Los Alamos National Security, LLC.
+# Copyright (c) 2011-2012 Los Alamos National Security, LLC.
 #                         All rights reserved.
 #
 # This program was prepared by Los Alamos National Security, LLC at Los Alamos
@@ -19,8 +19,6 @@ AC_INIT([supermagic], [1.0dev], [samuelREMOVEME@lanl.gov])
 dnl check if AM_SILENT_RULES are supported
 dnl if so, build using AM_SILENT_RULES
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
-
-AC_CONFIG_SRCDIR([src])
 
 dnl note: -Wall -Werror are automake options.  they are NOT compiler flags
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -62,8 +60,7 @@ dnl checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
 
-AC_CONFIG_FILES([Makefile
-                 src/Makefile])
+AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT
 
