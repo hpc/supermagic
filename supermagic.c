@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2011 Los Alamos National Security, LLC.
+ * Copyright (c) 2010-2012 Los Alamos National Security, LLC.
  *                         All rights reserved.
  *
  * This program was prepared by Los Alamos National Security, LLC at Los Alamos
@@ -17,72 +17,66 @@
  * found a bug? have an idea? please let me know.
  */
 
-/* /////////////////////////////////////////////////////////////////////////////
-o BUILD EXAMPLES
-    o example 1
-        make
-
-    o example 2
-        make MPICC=cc
-
-    see README for more details
-///////////////////////////////////////////////////////////////////////////// */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
-#include <unistd.h>
-#include <getopt.h>
-#include <time.h>
-#include <string.h>
-#include <fcntl.h>
+#endif
+#ifdef HAVE_ERRNO_H
 #include <errno.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#ifdef HAVE_LIMITS_H
 #include <limits.h>
+#endif
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
+#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+#ifdef HAVE_SIGNAL_H
 #include <signal.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 
 #include "mpi.h"
 
 /* only include the following if building with cell support */
 #if WITH_CELL_TESTS == 1
 #include "cell_check/cell_check.h"
-#endif
-
-/* message size defaults */
-#define SMGC_LRG_MSG_SIZE   (8   * 1024 * 1024)
-#define SMGC_LRGR_MSG_SIZE  (32  * 1024 * 1024)
-#define SMGC_LRGST_MSG_SIZE (256 * 1024 * 1024)
-#define SMGC_SML_MSG_SIZE   (256 * 1024)
-#define SMGC_SMLR_MSG_SIZE  (32  * 1024)
-#define SMGC_SMLST_MSG_SIZE (1)
-#define SMGC_DFLT_MSG_SIZE  (512 * 1024)
-
-/* mpi message timeout in seconds */
-#define MSG_TIMEOUT 180
-
-/* some mpi message size defaults that can be set at compile time */
-#ifdef SLOW
-    #define SMGC_MSG_SIZE SMGC_LRG_MSG_SIZE
-#elif defined SLOWER
-    #define SMGC_MSG_SIZE SMGC_LRGR_MSG_SIZE
-#elif defined SLOWEST
-    #define SMGC_MSG_SIZE SMGC_LRGST_MSG_SIZE
-#elif defined FAST
-    #define SMGC_MSG_SIZE SMGC_SML_MSG_SIZE
-#elif defined FASTER
-    #define SMGC_MSG_SIZE SMGC_SMLR_MSG_SIZE
-#elif defined FASTEST
-    #define SMGC_MSG_SIZE SMGC_SMLST_MSG_SIZE
-#else
-    #define SMGC_MSG_SIZE SMGC_DFLT_MSG_SIZE
 #endif
 
 /* binary bloat size (B) - default is 1 MB */
@@ -92,6 +86,12 @@ o BUILD EXAMPLES
     #undef SMGC_BIN_SIZE
     #define SMGC_BIN_SIZE 1
 #endif
+
+/* message size default */
+#define SMGC_MSG_SIZE (512 * 1024)
+
+/* mpi message timeout in seconds */
+#define MSG_TIMEOUT 180
 
 /* messaging time macros */
 #define TIMER_ENABLE(itimer)                                                   \
