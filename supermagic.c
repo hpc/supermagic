@@ -91,9 +91,9 @@
 #define SMGC_MSG_SIZE (512 * 1024)
 
 /* mpi message timeout in seconds */
-#define MSG_TIMEOUT 180
+#define MSG_TIMEOUT 15
 
-/* messaging time macros */
+/* messaging timeout macros */
 #define TIMER_ENABLE(itimer)                                                   \
 do {                                                                           \
     (itimer).it_value.tv_sec = MSG_TIMEOUT;                                    \
