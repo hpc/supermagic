@@ -15,10 +15,10 @@
 ################################################################################
 
 # author: samuel k. gutierrez
-# last updated: Thu Jun 21 13:47:46 MDT 2012
+# last updated: Sun Jul  8 20:03:32 MDT 2012
 
 declare -r PROG_NAME="crunch-hang"
-declare -r PROG_VER="0.1"
+declare -r PROG_VER="0.2"
 declare -r MAGIC_STR="########## HANG DETECTED"
 
 # example output string from supermagic hang detection
@@ -81,7 +81,7 @@ disp_bad_paths()
     echo -e "$bad_paths"
     the_bad_path=$(calc_bad_path "$fname" "$bad_paths")
     echo -e \
-    "one or more of the the following ranks caused the hang:\n@$the_bad_path@"
+    "one or more of the the following ranks caused the hang:\n@@$the_bad_path@@"
 }
 
 ################################################################################
@@ -117,8 +117,8 @@ calc_bad_path()
     # in this example, the bad path is between ranks 239 and 692
     local bad_path=`printf "%s\n" "${path_pairs[@]}" | sort -n | uniq -c | \
                     sed 's/^\s*//g' | sort -nr | head -n 1 | cut -d ' ' -f 2-3`
-    bone=`echo $bad_path | cut -d ' ' -f 1`
-    btwo=`echo $bad_path | cut -d ' ' -f 2`
+    local bone=`echo $bad_path | cut -d ' ' -f 1`
+    local btwo=`echo $bad_path | cut -d ' ' -f 2`
     # at this point $bad_path has something like:
     # 239 692
     # now we have to find the full path within the file using the two ranks
