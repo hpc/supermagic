@@ -1,0 +1,47 @@
+#!/bin/bash
+
+################################################################################
+# Copyright (c) 2012      Los Alamos National Security, LLC.
+#                         All rights reserved.
+#
+# This program was prepared by Los Alamos National Security, LLC at Los Alamos
+# National Laboratory (LANL) under contract No. DE-AC52-06NA25396 with the U.S.
+# Department of Energy (DOE). All rights in the program are reserved by the DOE
+# and Los Alamos National Security, LLC. Permission is granted to the public to
+# copy and use this software without charge, provided that this Notice and any
+# statement of authorship are reproduced on all copies. Neither the U.S.
+# Government nor LANS makes any warranty, express or implied, or assumes any
+# liability or responsibility for the use of this software.
+################################################################################
+
+# run your job from here
+
+################################################################################
+################################################################################
+# please update the following to meet your needs #
+################################################################################
+################################################################################
+
+# the minimum number of pes that your job requires
+declare -r MINNUMPE=60
+# timeout for a single mpi launch and test run (in seconds).
+# increase this value as needed for larger jobs
+declare -r TEST_TIMEOUT=600
+# mpi messaging timeout (s)
+declare -r MSG_TIMEOUT=2
+# full path to base directory of supermagic utilities
+declare -r SMGC_BASE="/users/samuel/supermagic"
+# full path to supermagic binary
+declare -r SMGC="$SMGC_BASE/src/supermagic"
+# full path to crunch-hang script
+declare -r CRUNCH="$SMGC_BASE/crunch-hang"
+# full path to rr-job-prep
+declare -r JOB_PREP="$SMGC_BASE/rr-job-prep"
+# number of pes to use when running your app
+declare -r MY_RUN_PES=4
+# update with your run command
+declare -r MY_RUN_CMD="$SMGC -a"
+
+$JOB_PREP $SMGC $MSG_TIMEOUT $CRUNCH $MINNUMPE $TEST_TIMEOUT "$MY_RUN_PES" "$MY_RUN_CMD"
+
+exit $?

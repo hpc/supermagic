@@ -124,7 +124,9 @@ calc_bad_path()
     # now we have to find the full path within the file using the two ranks
     # that were called out in $bad_path ($bone and $btwo).
     local full_path=`cat "$1" | \
-          egrep "==> "$bone" \(\w+[.]*\w*\) ==> "$btwo" \(\w+[.]*\w*\)"`
+          egrep ""$bone" \(\w+[.]*\w*\) ==> "$btwo" \(\w+[.]*\w*\)"`
+    #local full_path=`cat "$1" | \
+    #      egrep "==> "$bone" \(\w+[.]*\w*\) ==> "$btwo" \(\w+[.]*\w*\)"`
     # at this point $full_path has the entire path string. we need to prep it
     # some more. so, do that...
     full_path=`echo $full_path | egrep -o \

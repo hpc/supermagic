@@ -15,7 +15,7 @@
 ################################################################################
 
 # author: samuel k. gutierrez
-# last updated: Fri Jun 29 09:03:07 MDT 2012
+# last updated: Mon Jul  9 20:37:19 MDT 2012
 
 ################################################################################
 ################################################################################
@@ -23,30 +23,42 @@
 ################################################################################
 ################################################################################
 
+# program name
 declare -r PROG_NAME="rr-job-prep"
-declare -r PROG_VER="0.1"
+# program version
+declare -r PROG_VER="0.2"
+# name of the crunch-hang program
 declare -r CRUNCH_NAME="crunch-hang"
+# name of the full node set
 declare -r ALL_NODES_FN="ALL"
+# name of the subset node file
 declare -r SUBSET_NODES_FN="SUB"
+# the name of the supermagic output file
 declare -r SMGC_OUT_FN="OUT"
-
+# the name of the file containing all the bad nodes in a grep friendly way
+declare -r BAD_NODE_LIST_FN="BAD_NODES"
+# the name of the file containing all the bad nodes in a syslog friendly way
+# that show the path triplets
+declare -r BAD_NODE_TRIPLETS="BAD_NODE_TRIPLETS"
+# bad node set egrep string
+declare -r BAD_SET_REGEXP=\
+"@@[0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\)@@"
+# time between mpiruns (in seconds)
+declare -r TIME_BETWEEN_RUNS=10
 # items to be run on exit
 declare -a on_exit_items
-
 # this will eventually be set to a real value, but set to a safe default
 tmp_base="/tmp"
 # job id
 jobid="unknown"
-# pid of killer - start with something bogus and relatively harmless
-killer_pid=$$
-
-# in seconds
-#declare -r KILL_TIMEOUT=300
-declare -r KILL_TIMEOUT=4
+# timeout value (in seconds)
+kill_timeout=600
+# messaging timeout (s) - default is no timeout
+smgc_msg_timeout=-1
 
 ################################################################################
 ################################################################################
-# exit/cleanup code
+# exit/cleanup utility code
 ################################################################################
 ################################################################################
 function on_exit()
@@ -73,48 +85,65 @@ function usage()
 {
 cat << EOF
 Usage:
-    $PROG_NAME [OPTION] [/PATH/TO/SUPERMAGIC] [/PATH/TO/CRUNCH-HANG] [MIN PES]
+    $PROG_NAME \
+[OPTION] [/PATH/TO/SUPERMAGIC] [/PATH/TO/CRUNCH-HANG] \
+[MIN PES] [HANG TIMEOUT (s)] [JOB PES] [YOUR RUN CMD]
 Options:
     -v|--version
     -h|--help
 About:
-    $PROG_NAME does stuff... 
+    $PROG_NAME attempts to find a good set of nodes within an allocation.
 EOF
 }
 
 ################################################################################
 function run_and_pray()
 {
+    if [[ `have_enough_pes "$3"` -eq 0 ]]; then
+        echo
+        echo "##############################################################"
+        echo "# cannot continue. not enough pes to meet minpe requirement. #"
+        echo "##############################################################"
+        echo
+        note_bad_nodes
+        exit 1;
+    fi
+    # if we are here, then try to run the messaging test
     ( mpirun --hostfile "$tmp_base/$SUBSET_NODES_FN" \
-    "$1" -t small_all_to_all_ptp 2>&1 | \
+    "$1" -t small_all_to_all_ptp -T $smgc_msg_timeout 2>&1 | \
     tee "$tmp_base/$SMGC_OUT_FN" 2>&1 > /dev/null )&
-    cmd_pid=$!
+    local cmd_pid=$!
 
     # setup the killer
-    ( sleep $KILL_TIMEOUT && \
+    ( sleep $kill_timeout && \
       kill -9 $cmd_pid )&
-    killer_pid=$!
+    local killer_pid=$!
 
     wait $cmd_pid &> /dev/null
     wait_status=$?
 
     if [[ $wait_status -ne 0 ]]; then 
-        echo "### RUN TIMEOUT EXCEEDED. this may mean we can't launch mpi jobs."
-        echo "### please contact the system administrators."
+        echo "### RUN TIMEOUT EXCEEDED ###"
         echo "### JOBID: $jobid"
         # not much else we can do here... well, maybe that's not true, but it
         # is a little harder to deal with
         exit 1;
     else
-        # "normal" exit, so clean up - we still don't know if things worked.
+        # "normal" exit, so clean up - we still don't know if things worked,
+        # but we need to terminate the killer process
+        #echo "### killing killer"
         disown $killer_pid
-        kill $killer_pid 2>&1 > /dev/null
+        kill $killer_pid
+        # XXX big hammer ... fix this later
+        killall -q sleep
     fi
-
-    local crunch_out=`$2 "$tmp_base/$SMGC_OUT_FN"`
-
+    # now crunch the output from supermagic
+    local crunch_out=`"$2" "$tmp_base/$SMGC_OUT_FN"`
+    # success!
     if [[ "x$crunch_out" == "x### NO HANG ###" ]]; then
-        echo "### successful run - found a good set!"
+        echo
+        echo "### successful run - we found a good set!"
+        echo
         return 0;
     else
         # no love. we launched, but the job hung in messaging :-(.  update the
@@ -124,17 +153,123 @@ function run_and_pray()
 }
 
 ################################################################################
+function cleanup_failed_run()
+{
+    killall -q -9 mpirun
+    killall -q -9 supermagic
+}
+
+################################################################################
+# $1 path to crunch-hang
+# looking for something like:
+# 1   2         3   4 5                     6   7 8
+# @@4 (UNKNOWN) ==> 6 (ceb179a.localdomain) ==> 8 (UNKNOWN)@@
+# XXX update later - really ugly
+function remove_bad_nodes_from_set()
+{
+    local crunch_out=`$1 $tmp_base/$SMGC_OUT_FN`
+    local bad_set=`echo -e "$crunch_out" | egrep "$BAD_SET_REGEXP"`
+    # at this point we have the entire string, but we really only want the ranks
+    local bad_ranks=`echo $bad_set | cut -d ' ' -f 1,4,7`
+    # some more string prep - remove the '@@'
+    bad_ranks=`echo $bad_ranks | sed 's/@@//g'`
+    # now we have something like: 4 6 8
+    local rone=`echo $bad_ranks | cut -d ' ' -f 1`
+    local rtwo=`echo $bad_ranks | cut -d ' ' -f 2`
+    local rthree=`echo $bad_ranks | cut -d ' ' -f 3`
+    # ranks are base zero, so adjust for that
+    (( rone+=1 ))
+    (( rtwo+=1 ))
+    (( rthree+=1 ))
+    # get the node names - the rank will correspond to the line number
+    local rone_name=`sed -n "${rone},${rone}p" "$tmp_base/$SUBSET_NODES_FN"`
+    local rtwo_name=`sed -n "${rtwo},${rtwo}p" "$tmp_base/$SUBSET_NODES_FN"`
+    local rthree_name=`sed -n "${rthree},${rthree}p" "$tmp_base/$SUBSET_NODES_FN"`
+    # back to base zero for the user report
+    (( rone-=1 ))
+    (( rtwo-=1 ))
+    (( rthree-=1 ))
+
+    echo "### removing the following \"bad\" ranks:"
+    echo "# rank $rone on $rone_name"
+    echo "# rank $rtwo on $rtwo_name"
+    echo "# rank $rthree on $rthree_name"
+
+    # update the bad nodes list
+    echo -e "$rone_name\n$rtwo_name\n$rthree_name" | \
+    sort -n | uniq >> "$tmp_base/$BAD_NODE_LIST_FN"
+    if [[ $? != 0 ]]; then
+        echo "failure writing bad node list."
+        exit 1;
+    fi
+    # now update the bad node triples
+    if [[ ! -f "$tmp_base/$BAD_NODE_TRIPLETS" ]]; then
+        echo "### $PROG_NAME $PROG_VER" > "$tmp_base/$BAD_NODE_TRIPLETS"
+        echo "### user: $USER" >> "$tmp_base/$BAD_NODE_TRIPLETS"
+        echo "### jobid: $jobid" >> "$tmp_base/$BAD_NODE_TRIPLETS"
+        echo "### single test timeout (s): $kill_timeout" >> "$tmp_base/$BAD_NODE_TRIPLETS"
+        echo "### communication timeout (s): $smgc_msg_timeout" >> "$tmp_base/$BAD_NODE_TRIPLETS"
+        echo "### communication timeout experienced between the following" >> \
+        "$tmp_base/$BAD_NODE_TRIPLETS"
+    fi
+    echo "### $rone_name ==> $rtwo_name ==> $rthree_name" >> \
+    "$tmp_base/$BAD_NODE_TRIPLETS"
+    # now update the subset of nodes to run on
+    grep -v -f "$tmp_base/$BAD_NODE_LIST_FN" "$tmp_base/$ALL_NODES_FN" > \
+    "$tmp_base/$SUBSET_NODES_FN"
+    if [[ $? != 0 ]]; then
+        echo "failure writing new node set"
+        exit 1;
+    fi
+    # sleep a little to make sure the new file is written
+    sleep 1
+}
+
+################################################################################
+function have_enough_pes()
+{
+    local numpes=`wc -l "$tmp_base/$SUBSET_NODES_FN" | cut -d ' ' -f 1`
+    if [[ "$numpes" -ge "$1" ]]; then
+        echo 1
+    else
+        echo 0
+    fi
+}
+
+################################################################################
+function note_bad_nodes()
+{
+    local trips=`cat "$tmp_base/$BAD_NODE_TRIPLETS"`
+    if [[ -f "$tmp_base/$BAD_NODE_LIST_FN" ]]; then
+        echo "##############################################################"
+        echo "###               \"bad node\" list                          ###"
+        echo "##############################################################"
+        echo -e "$trips"
+        echo "##############################################################"
+    fi
+    # syslog this
+    logger -t $PROG_NAME -s -- "$trips"
+}
+
+################################################################################
 function find_good_node_set()
 {
-    echo "### starting - cross your fingers ###"
-    echo
+    local run_status=0
     run_and_pray "$1" "$2" "$3"
-    while [[ $? == 1 ]]; do
+    run_status=$?
+    # iterate until we find a good set or run into the minpe limit
+    while [[ $run_status == 1 ]]; do
+        # cleanup a little before we try again...
+        cleanup_failed_run
+        # we don't want to overwhelm the system, so take a little break
+        echo "### waiting $TIME_BETWEEN_RUNS s before next test..."
+        sleep $TIME_BETWEEN_RUNS
+        remove_bad_nodes_from_set "$2"
         echo "### trying another set..."
         run_and_pray "$1" "$2" "$3"
-        # we don't want to overwhelm the system, so take a little break
-        sleep 5
+        run_status=$?
     done
+    note_bad_nodes
 }
 
 ################################################################################
@@ -148,27 +283,49 @@ function have_jobid()
 }
 
 ################################################################################
-function hello()
+# assuming sanity has already passed
+function get_total_numpe()
 {
-cat << EOF
-### $PROG_NAME $PROG_VER ###
-EOF
+    echo `wc -l $PBS_NODEFILE | cut -d ' ' -f 1`
 }
 
 ################################################################################
 function init()
 {
-    echo "# starting init..."
+    # set some app params
+    kill_timeout="$4"
+    smgc_msg_timeout="$7"
+
     if [[ `have_jobid` -eq 1 ]]; then
         jobid="$PBS_JOBID"
     else
-        echo "cannot determine job id"
+        echo "cannot determine job id."
         exit 1;
     fi
+
     tmp_base=`mktemp -d -t SMGCXXXX`
-    echo "# timeout: $KILL_TIMEOUT s"
-    echo "# temp directory: $tmp_base"
-    echo "# copying $PBS_NODEFILE file to $tmp_base"
+    local total_numpe=$(get_total_numpe)
+
+    sanity "$1" "$2" "$3" "$5"
+
+    echo
+    echo "##############################################################"
+    echo "###     cross your fingers and grab a cup of coffee        ###"
+    echo "###                this may take a while                   ###"
+    echo "###                                                        ###"
+    echo "###              please ignore random output               ###"
+    echo "##############################################################"
+    echo
+    echo "### $PROG_NAME $PROG_VER"
+    echo "### job id: $jobid"
+    echo "### communication timeout: $smgc_msg_timeout s"
+    echo "### single test timeout: $kill_timeout s"
+    echo "### temp directory: $tmp_base"
+    echo "### starting numpe: $total_numpe"
+    echo "### minpes: $3"
+    echo "### runpes: $5"
+    echo
+
     # save a copy of the full list of nodes and start with a full set
     cp $PBS_NODEFILE "$tmp_base/$ALL_NODES_FN" && \
     cp "$tmp_base/$ALL_NODES_FN" "$tmp_base/$SUBSET_NODES_FN"
@@ -176,13 +333,17 @@ function init()
         echo "cp failure!"
         exit 1;
     else
-        # add cleanup code
+        # add cleanup code below
         add_on_exit rm -f "$tmp_base/$ALL_NODES_FN"
         add_on_exit rm -f "$tmp_base/$SUBSET_NODES_FN"
         add_on_exit rm -f "$tmp_base/$SMGC_OUT_FN"
+        add_on_exit rm -f "$tmp_base/$BAD_NODE_LIST_FN"
+        add_on_exit rm -f "$tmp_base/$BAD_NODE_TRIPLETS"
         add_on_exit rmdir "$tmp_base"
         add_on_exit killall -q -9 mpirun
         add_on_exit killall -q -9 supermagic
+        # XXX big hammer - fix later
+        add_on_exit killall -q sleep
     fi
 }
 
@@ -228,6 +389,11 @@ function sanity()
         echo "PBS_NODEFILE not set. this environment used in "$PROG_NAME"."
         exit 1;
     fi
+    # do we have sane pe values
+    if [[ ! $3 -ge $4 ]]; then
+        echo "MIN PES must be greater than or equal to JOB PES."
+        exit 1;
+    fi
 }
 
 ################################################################################
@@ -252,14 +418,30 @@ for i in $*; do
     esac
 done
 
-if [[ $# != 3 ]]; then
+if [[ $# != 7 ]]; then
     usage
     exit 1;
 else
-    hello
-    init
-    sanity "$1" "$2"
+    smgc_path="$1"
+    msg_timeout="$2"
+    crunch_path="$3"
+    min_pes="$4"
+    timeout="$5"
+    user_pes="$6"
+    user_app="$7"
+
+    init "$smgc_path" "$crunch_path" "$min_pes" "$timeout" "$user_pes" "$user_app" "$msg_timeout"
     # if we are here, let the games begin...
-    find_good_node_set "$1" "$2" "$3"
+    find_good_node_set "$smgc_path" "$crunch_path" "$min_pes"
+    # now run your command
+    zcmd="mpirun -n $user_pes --hostfile "$tmp_base/$SUBSET_NODES_FN" $user_app"
+    echo
+    echo "##############################################################"
+    echo "###           about to start your application              ###"
+    echo "##############################################################"
+    echo
+    echo "$zcmd"
+    echo
+    eval $zcmd
     exit $?;
 fi
