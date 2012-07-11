@@ -18,7 +18,7 @@
 # last updated: Sun Jul  8 20:03:32 MDT 2012
 
 declare -r PROG_NAME="crunch-hang"
-declare -r PROG_VER="0.2"
+declare -r PROG_VER="0.3"
 declare -r MAGIC_STR="########## HANG DETECTED"
 
 # example output string from supermagic hang detection
@@ -129,8 +129,9 @@ calc_bad_path()
     #      egrep "==> "$bone" \(\w+[.]*\w*\) ==> "$btwo" \(\w+[.]*\w*\)"`
     # at this point $full_path has the entire path string. we need to prep it
     # some more. so, do that...
+    #  use head -n 1 to just choose one if there are multiples
     full_path=`echo $full_path | egrep -o \
-    '[0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\)'`
+    '[0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\)' | head -n 1`
     echo $full_path
 }
 
