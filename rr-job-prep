@@ -15,7 +15,7 @@
 ################################################################################
 
 # author: samuel k. gutierrez
-# last updated: Mon Jul  9 20:37:19 MDT 2012
+# last updated: Wed Jul 11 14:24:27 MDT 2012
 
 ################################################################################
 ################################################################################
@@ -26,7 +26,7 @@
 # program name
 declare -r PROG_NAME="rr-job-prep"
 # program version
-declare -r PROG_VER="0.2"
+declare -r PROG_VER="0.3"
 # name of the crunch-hang program
 declare -r CRUNCH_NAME="crunch-hang"
 # name of the full node set
@@ -234,15 +234,15 @@ function have_enough_pes()
 ################################################################################
 function log_funk()
 {
-    logger $start_date_and_time -t $PROG_NAME -s -- "$1"
-    logger $start_date_and_time -t $PROG_NAME -s -- "$2"
+    logger $start_date_and_time $jobid -t $PROG_NAME -s -- "$1"
+    logger $start_date_and_time $jobid -t $PROG_NAME -s -- "$2"
 }
 
 ################################################################################
 function note_bad_nodes()
 {
-    local trips=`cat "$tmp_base/$BAD_NODE_TRIPLETS"`
-    if [[ -f "$tmp_base/$BAD_NODE_LIST_FN" ]]; then
+    if [[ -f "$tmp_base/$BAD_NODE_TRIPLETS" ]]; then
+        local trips=`cat "$tmp_base/$BAD_NODE_TRIPLETS"`
         echo "##############################################################"
         echo "###               \"bad node\" list                          ###"
         echo "##############################################################"
