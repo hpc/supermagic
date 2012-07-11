@@ -55,6 +55,8 @@ jobid="unknown"
 kill_timeout=600
 # messaging timeout (s) - default is no timeout
 smgc_msg_timeout=-1
+# start date and time string
+start_date_and_time="time unknown"
 
 ################################################################################
 ################################################################################
@@ -202,18 +204,11 @@ function remove_bad_nodes_from_set()
         echo "failure writing bad node list."
         exit 1;
     fi
-    # now update the bad node triples
-    if [[ ! -f "$tmp_base/$BAD_NODE_TRIPLETS" ]]; then
-        echo "### $PROG_NAME $PROG_VER" > "$tmp_base/$BAD_NODE_TRIPLETS"
-        echo "### user: $USER" >> "$tmp_base/$BAD_NODE_TRIPLETS"
-        echo "### jobid: $jobid" >> "$tmp_base/$BAD_NODE_TRIPLETS"
-        echo "### single test timeout (s): $kill_timeout" >> "$tmp_base/$BAD_NODE_TRIPLETS"
-        echo "### communication timeout (s): $smgc_msg_timeout" >> "$tmp_base/$BAD_NODE_TRIPLETS"
-        echo "### communication timeout experienced between the following" >> \
-        "$tmp_base/$BAD_NODE_TRIPLETS"
-    fi
-    echo "### $rone_name ==> $rtwo_name ==> $rthree_name" >> \
-    "$tmp_base/$BAD_NODE_TRIPLETS"
+    local log1="$rone_name could not talk to $rtwo_name in $msg_timeout seconds."
+    local log2="$rtwo_name could not talk to $rthree_name in $msg_timeout seconds."
+    log_funk "$log1" "$log2"
+    echo "$log1" >> "$tmp_base/$BAD_NODE_TRIPLETS"
+    echo "$log2" >> "$tmp_base/$BAD_NODE_TRIPLETS"
     # now update the subset of nodes to run on
     grep -v -f "$tmp_base/$BAD_NODE_LIST_FN" "$tmp_base/$ALL_NODES_FN" > \
     "$tmp_base/$SUBSET_NODES_FN"
@@ -237,6 +232,13 @@ function have_enough_pes()
 }
 
 ################################################################################
+function log_funk()
+{
+    logger $start_date_and_time -t $PROG_NAME -s -- "$1"
+    logger $start_date_and_time -t $PROG_NAME -s -- "$2"
+}
+
+################################################################################
 function note_bad_nodes()
 {
     local trips=`cat "$tmp_base/$BAD_NODE_TRIPLETS"`
@@ -247,8 +249,6 @@ function note_bad_nodes()
         echo -e "$trips"
         echo "##############################################################"
     fi
-    # syslog this
-    logger -t $PROG_NAME -s -- "$trips"
 }
 
 ################################################################################
@@ -292,6 +292,7 @@ function get_total_numpe()
 ################################################################################
 function init()
 {
+    start_date_and_time=`date`
     # set some app params
     kill_timeout="$4"
     smgc_msg_timeout="$7"
@@ -317,6 +318,7 @@ function init()
     echo "##############################################################"
     echo
     echo "### $PROG_NAME $PROG_VER"
+    echo "### start: $start_date_and_time"
     echo "### job id: $jobid"
     echo "### communication timeout: $smgc_msg_timeout s"
     echo "### single test timeout: $kill_timeout s"
