@@ -15,11 +15,13 @@
 ################################################################################
 
 # author: samuel k. gutierrez
-# last updated: Sun Jul  8 20:03:32 MDT 2012
+# last updated: Thu Jul 12 15:20:22 MDT 2012
 
 declare -r PROG_NAME="crunch-hang"
-declare -r PROG_VER="0.3"
+declare -r PROG_VER="0.4"
 declare -r MAGIC_STR="########## HANG DETECTED"
+declare -r BAD_TRIP_REGEXP=\
+'[0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\)'
 
 # example output string from supermagic hang detection
 # 1          2    3        4  5    6          7  8 9   10  1112  13  1415
@@ -130,8 +132,7 @@ calc_bad_path()
     # at this point $full_path has the entire path string. we need to prep it
     # some more. so, do that...
     #  use head -n 1 to just choose one if there are multiples
-    full_path=`echo $full_path | egrep -o \
-    '[0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\)' | head -n 1`
+    full_path=`echo $full_path | egrep -o "$BAD_TRIP_REGEXP" | head -n 1`
     echo $full_path
 }
 
