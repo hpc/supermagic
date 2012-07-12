@@ -24,8 +24,8 @@ declare -r BAD_TRIP_REGEXP=\
 '[0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\) ==> [0-9]+ \(\w+[.]*\w*\)'
 
 # example output string from supermagic hang detection
-# 1          2    3        4  5    6          7  8 9   10  1112  13  1415
-# ########## HANG DETECTED on loop iteration: 10 0 (a) ==> 1 (b) ==> 2 (c)
+# 1          2    3        4   5    6          7   8 9  10   11 12 13   14 15
+# ########## HANG DETECTED [on loop iteration: 14] 4 (?) ==> 18 (a) ==> 32 (?)
 
 usage()
 {
