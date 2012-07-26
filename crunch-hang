@@ -15,7 +15,12 @@
 ################################################################################
 
 # author: samuel k. gutierrez
-# last updated: Thu Jul 12 15:20:22 MDT 2012
+# last updated:  Thu Jul 26 15:02:10 MDT 2012
+
+#
+# crunch-hang processes supermagic hang detection output and attempts to
+# identify the nodes responsible for the hang.
+#
 
 declare -r PROG_NAME="crunch-hang"
 declare -r PROG_VER="0.4"
