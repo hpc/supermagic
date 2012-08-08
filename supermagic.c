@@ -1412,21 +1412,22 @@ main(int argc,
 
         static struct option long_options[] =
         {
-            {"all"       , no_argument,       0, 'a'},
-            {"version"   , no_argument,       0, 'v'},
-            {"verbose"   , no_argument,       0, 'V'},
-            {"help"      , no_argument,       0, 'h'},
-            {"stat"      , required_argument, 0, 's'},
-            {"write"     , required_argument, 0, 'w'},
-            {"n-iters"   , required_argument, 0, 'n'},
-            {"msg-size"  , required_argument, 0, 'm'},
-            {"file-size" , required_argument, 0, 'M'},
-            {"quiet"     , no_argument,       0, 'q'},
-            {"with-tests", required_argument, 0, 't'},
-            {0           , 0                , 0,  0 }
+            {"all"        , no_argument,       0, 'a'},
+            {"version"    , no_argument,       0, 'v'},
+            {"verbose"    , no_argument,       0, 'V'},
+            {"help"       , no_argument,       0, 'h'},
+            {"stat"       , required_argument, 0, 's'},
+            {"write"      , required_argument, 0, 'w'},
+            {"n-iters"    , required_argument, 0, 'n'},
+            {"msg-size"   , required_argument, 0, 'm'},
+            {"file-size"  , required_argument, 0, 'M'},
+            {"quiet"      , no_argument,       0, 'q'},
+            {"with-tests" , required_argument, 0, 't'},
+            {"msg-timeout", required_argument, 0, 'T'},
+            {0            , 0                , 0,  0 }
         };
 
-        c = getopt_long_only(argc, argv, "avVhs:w:n:m:M:qt:", long_options,
+        c = getopt_long_only(argc, argv, "avVhs:w:n:m:M:qt:T:", long_options,
                              &opt_indx);
 
         if (c == -1) {
@@ -1512,6 +1513,9 @@ main(int argc,
                         goto fin;
                     }
                 break;
+            case 'T': /* set message timeout */
+                msg_timeout = strtol(optarg, (char **)NULL, 10);
+                break;
 
             default:
                 usage();
@@ -1539,6 +1543,8 @@ main(int argc,
     SMGC_MPF("   bin bloat              : %d B\n", SMGC_BIN_SIZE);
     SMGC_MPF("   default msg size       : %d B\n", SMGC_MSG_SIZE);
     SMGC_MPF("   actual msg size        : %d B\n", msg_size);
+    SMGC_MPF("   message timeout        : %d %s\n",
+             msg_timeout, msg_timeout < 0 ? "" : "s");
     SMGC_MPF("   default file size/rank : %d B\n", SMGC_MPI_IO_BUFF_SIZE);
     SMGC_MPF("   actual file size/rank  : %lu B\n", file_size);
     SMGC_MPF("   num iters              : %d\n", num_iters);

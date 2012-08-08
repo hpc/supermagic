@@ -93,25 +93,26 @@
 /* message size default */
 #define SMGC_MSG_SIZE (512 * 1024)
 
-/* mpi message timeout in seconds */
-#define MSG_TIMEOUT 15
-
 /* messaging timeout macros */
 #define TIMER_ENABLE(itimer)                                                   \
 do {                                                                           \
-    (itimer).it_value.tv_sec = MSG_TIMEOUT;                                    \
-    (itimer).it_value.tv_usec = 0;                                             \
-    (itimer).it_interval = (itimer).it_value;                                  \
-    signal(SIGALRM, &kill_mpi_messaging);                                      \
-    setitimer(ITIMER_REAL, &(itimer), NULL);                                   \
+    if (msg_timeout > 0) {                                                     \
+        (itimer).it_value.tv_sec = msg_timeout;                                \
+        (itimer).it_value.tv_usec = 0;                                         \
+        (itimer).it_interval = (itimer).it_value;                              \
+        signal(SIGALRM, &kill_mpi_messaging);                                  \
+        setitimer(ITIMER_REAL, &(itimer), NULL);                               \
+    }                                                                          \
 } while (0)
 
 #define TIMER_DISABLE(itimer)                                                  \
 do {                                                                           \
+    if (msg_timeout > 0) {                                                     \
         (itimer).it_value.tv_sec = 0;                                          \
         (itimer).it_value.tv_usec = 0;                                         \
         (itimer).it_interval = (itimer).it_value;                              \
         setitimer(ITIMER_REAL, &(itimer), NULL);                               \
+    }                                                                          \
 } while (0)
 
 /* invalid color - all valid colors are expected to be positive values */
@@ -241,6 +242,8 @@ do {                                                                           \
 static int glob_loop_iter = 0;
 static int glob_l_neighbor = 0;
 static int glob_r_neighbor = 0;
+/* no timeout by default */
+static int msg_timeout = -1;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* static forward declarations - typedefs - etc.                              */
