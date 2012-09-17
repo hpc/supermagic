@@ -66,8 +66,8 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
 
 AC_CONFIG_FILES([Makefile
-                 cell/ppu/Makefile
-                 cell/Makefile])
+                 cell/Makefile
+                 cell/ppu/Makefile])
 
 AC_OUTPUT
 
