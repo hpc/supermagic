@@ -14,7 +14,7 @@
 
 AC_PREREQ([2.60])
 
-AC_INIT([supermagic], [1.2], [samuel@lanl.gov])
+AC_INIT([supermagic], [1.3-dev], [samuel@lanl.gov])
 
 dnl check if AM_SILENT_RULES are supported
 dnl if so, build using AM_SILENT_RULES
