@@ -78,8 +78,8 @@
 #include "mpi.h"
 
 /* only include the following if building with cell support */
-#if WITH_CELL_TESTS == 1
-#include "cell_check/cell_check.h"
+#if SMGC_HAVE_CELL_SUPPORT == 1
+#include "cell_check.h"
 #endif
 
 /* binary bloat size (B) - default is 1 MB */
@@ -343,7 +343,7 @@ io_stats(double_int_t, char *, int);
 static void
 kill_mpi_messaging(int sig);
 
-#if WITH_CELL_TESTS == 1
+#if SMGC_HAVE_CELL_SUPPORT == 1
 static int
 cell_sanity(void);
 #endif
@@ -421,7 +421,7 @@ static smgc_test_t smgc_all_tests[] =
     {"stat_paths"           , &stat_paths           },
     {"mpi_io"               , &mpi_io               },
     {"n_to_n_io"            , &n_to_n_io            },
-#if WITH_CELL_TESTS == 1
+#if SMGC_HAVE_CELL_SUPPORT == 1
     {"cell_sanity"          , &cell_sanity          },
 #endif
     {"small_all_to_all_ptp" , &small_all_to_all_ptp },
@@ -442,7 +442,7 @@ static smgc_test_t smgc_small_jb_tests[] =
     {"hostname_exchange"    , &hostname_exchange    },
     {"stat_paths"           , &stat_paths           },
     {"mpi_io"               , &mpi_io               },
-#if WITH_CELL_TESTS == 1
+#if SMGC_HAVE_CELL_SUPPORT == 1
     {"cell_sanity"          , &cell_sanity          },
 #endif
     {"small_all_to_all_ptp" , &small_all_to_all_ptp },
@@ -462,7 +462,7 @@ static smgc_test_t smgc_lrg_jb_tests[] =
     {"hostname_exchange"    , &hostname_exchange  },
     {"stat_paths"           , &stat_paths         },
     {"mpi_io"               , &mpi_io             },
-#if WITH_CELL_TESTS == 1
+#if SMGC_HAVE_CELL_SUPPORT == 1
     {"cell_sanity"          , &cell_sanity        },
 #endif
     {"small_allreduce_max"  , &small_allreduce_max},

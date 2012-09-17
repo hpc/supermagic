@@ -687,7 +687,7 @@ kill_mpi_messaging(int sig)
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-#if WITH_CELL_TESTS == 1
+#if SMGC_HAVE_CELL_SUPPORT == 1
 
 /* in seconds */
 #define CELL_TEST_TIMEOUT 480
@@ -739,7 +739,7 @@ cell_sanity(void)
 err:
     return SMGC_ERROR;
 }
-#endif /* WITH_CELL_TESTS */
+#endif /* SMGC_HAVE_CELL_SUPPORT */
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int

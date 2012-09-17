@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2011 Los Alamos National Security, LLC.
+ * Copyright (c) 2010-2012 Los Alamos National Security, LLC.
  *                         All rights reserved.
  *
  * This program was prepared by Los Alamos National Security, LLC at Los Alamos
@@ -41,7 +41,7 @@ unsigned long cell_check(CELL_CHECK_MSG_T msg_level, CELL_CHECK_TEST_T test_leve
     dacs_wid_t  wid;
     uint32_t     accel_fail;
     int32_t exit_status;
-    char * accel_proc = "cell_check_ppu";
+    char * accel_proc = "cell/ppu/cell_check_ppu";
     DACS_PROC_CREATION_FLAG_T creation_flags = DACS_PROC_LOCAL_FILE;
 
     g.version = 11;

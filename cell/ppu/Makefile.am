@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2012 Los Alamos National Security, LLC.
+# Copyright (c) 2012      Los Alamos National Security, LLC.
 #                         All rights reserved.
 #
 # This program was prepared by Los Alamos National Security, LLC at Los Alamos
@@ -12,29 +12,21 @@
 # liability or responsibility for the use of this software.
 ################################################################################
 
-bin_PROGRAMS = supermagic
+my_ppubindir = $(bindir)/cell/ppu
 
-SUBDIRS = cell
-
-supermagic_SOURCES = \
-supermagic.h supermagic.c
-
-supermagic_CFLAGS =
-supermagic_LDFLAGS =
-supermagic_LDADD =
+my_ppubin_PROGRAMS =
 
 if SMGC_BUILD_CELL
-supermagic_CFLAGS += -I$(top_srcdir)/cell
-supermagic_LDFLAGS += -L$(top_srcdir)/cell
-supermagic_LDADD += -lcell_check
+my_ppubin_PROGRAMS += cell_check_ppu
 endif
 
-EXTRA_DIST = \
-Makefile.top AUTHORS README \
-THANKS COPYRIGHT autogen \
-ChangeLog crunch-hang rr-job-prep
+CC=ppu-gcc
 
-ACLOCAL_AMFLAGS = -I m4
+cell_check_ppu_SOURCES = \
+cell_check_ppu.c cell_check.h cell_check_internal.h cw_util.h cw_util.c
 
-dist-hook:
-	ln -s Makefile.top $(distdir)/Makefile
+cell_check_ppu_LDFLAGS = \
+-L/opt/cell/sysroot/usr/lib64/dacs/debug
+
+cell_check_ppu_LDADD = \
+-ldacs_hybrid -lstdc++

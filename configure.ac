@@ -14,7 +14,7 @@
 
 AC_PREREQ([2.60])
 
-AC_INIT([supermagic], [1.1dev], [samuelREMOVEME@lanl.gov])
+AC_INIT([supermagic], [1.2-alpha], [samuel@lanl.gov])
 
 dnl check if AM_SILENT_RULES are supported
 dnl if so, build using AM_SILENT_RULES
@@ -34,6 +34,9 @@ AC_PROG_CC_C99
 
 AC_USE_SYSTEM_EXTENSIONS
 
+AC_PROG_LIBTOOL
+AC_CONFIG_MACRO_DIR([m4])
+
 dnl check for adequate mpi support
 AC_MSG_CHECKING([if $CC can compile MPI applications])
 AC_LINK_IFELSE([
@@ -45,9 +48,8 @@ AC_LINK_IFELSE([
      AC_MSG_ERROR([$CC cannot compile MPI applications. cannot continue.])]
 )
 
-
 dnl checks for libraries.
-dnl none at this point
+SMGC_CELL
 
 dnl checks for header files.
 AC_CHECK_HEADERS([\
@@ -63,7 +65,9 @@ dnl checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+                 cell/ppu/Makefile
+                 cell/Makefile])
 
 AC_OUTPUT
 

@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2012 Los Alamos National Security, LLC.
+# Copyright (c) 2012      Los Alamos National Security, LLC.
 #                         All rights reserved.
 #
 # This program was prepared by Los Alamos National Security, LLC at Los Alamos
@@ -12,29 +12,21 @@
 # liability or responsibility for the use of this software.
 ################################################################################
 
-bin_PROGRAMS = supermagic
+CC=gcc
 
-SUBDIRS = cell
-
-supermagic_SOURCES = \
-supermagic.h supermagic.c
-
-supermagic_CFLAGS =
-supermagic_LDFLAGS =
-supermagic_LDADD =
+lib_LTLIBRARIES =
 
 if SMGC_BUILD_CELL
-supermagic_CFLAGS += -I$(top_srcdir)/cell
-supermagic_LDFLAGS += -L$(top_srcdir)/cell
-supermagic_LDADD += -lcell_check
+lib_LTLIBRARIES += libcell_check.la
 endif
 
-EXTRA_DIST = \
-Makefile.top AUTHORS README \
-THANKS COPYRIGHT autogen \
-ChangeLog crunch-hang rr-job-prep
+libcell_check_la_SOURCES = \
+cell_check.c cell_check.h cell_check_internal.h cw_util.h cw_util.c cw_util.h
 
-ACLOCAL_AMFLAGS = -I m4
+libcell_check_la_LDFLAGS = \
+-L/usr/lib64/dacs/debug
 
-dist-hook:
-	ln -s Makefile.top $(distdir)/Makefile
+libcell_check_la_LIBADD = \
+-ldacs_hybrid
+
+SUBDIRS = ppu

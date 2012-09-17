@@ -20,3 +20,8 @@ all:
 	@echo "### running configure and make for you ###"
 	@echo ""
 	@./configure && make
+
+cell:
+	@echo "### running configure and make for you ###"
+	@echo ""
+	@./configure --enable-cell && make
