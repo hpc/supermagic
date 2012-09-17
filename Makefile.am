@@ -32,7 +32,8 @@ endif
 EXTRA_DIST = \
 Makefile.top AUTHORS README \
 THANKS COPYRIGHT autogen \
-ChangeLog crunch-hang rr-job-prep
+ChangeLog \
+util/crunch-hang util/rr-job-prep util/rr-run-job
 
 ACLOCAL_AMFLAGS = -I m4
 
