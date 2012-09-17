@@ -16,6 +16,8 @@
 
 SHELL  = /bin/sh
 
+.PHONY: all cell
+
 all:
 	@echo "### running configure and make for you ###"
 	@echo ""
