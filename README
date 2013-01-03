@@ -1,10 +1,14 @@
 ################################################################################
                                    supermagic
 ################################################################################
+
                               ===================
                               what is supermagic?
                               ===================
 a very simple mpi sanity code. nothing more, nothing less.
+
+### latest distributions
+http://hpc.github.com/supermagic
 
                               ===================
                               building supermagic
