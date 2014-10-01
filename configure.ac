@@ -25,16 +25,17 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AM_CONFIG_HEADER([config.h])
 
+AC_USE_SYSTEM_EXTENSIONS
+
 dnl checks for programs.
 dnl note that we are checking for mpicc first, the next check will verify CC
 AC_PROG_CC([mpicc cc])
 
 AM_PROG_CC_C_O
 AC_PROG_CC_C99
-
-AC_USE_SYSTEM_EXTENSIONS
-
+AM_PROG_AR
 AC_PROG_LIBTOOL
+
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl check for adequate mpi support
