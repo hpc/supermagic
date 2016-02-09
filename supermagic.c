@@ -464,8 +464,11 @@ n_to_n_io(void)
 
     /* write to all requested paths */
     for (i = 0; i < num_fs_test_paths; ++i) {
-        asprintf(&my_file_name, "%s/%s_%d", fs_test_list[i],
-                 SMGC_MPI_FILE_NAME, my_rank);
+        if (-1 == asprintf(&my_file_name, "%s/%s_%d", fs_test_list[i],
+                           SMGC_MPI_FILE_NAME, my_rank)) {
+            SMGC_ERR_MSG("out of resources\n");
+            goto out;
+        }
         if (NULL == my_file_name) {
             SMGC_ERR_MSG("out of resources\n");
             goto out;
