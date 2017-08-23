@@ -19,6 +19,7 @@ AC_INIT([supermagic], [1.3-dev], [samuel@lanl.gov])
 dnl check if AM_SILENT_RULES are supported
 dnl if so, build using AM_SILENT_RULES
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 dnl note: -Wall -Werror are automake options.  they are NOT compiler flags
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
