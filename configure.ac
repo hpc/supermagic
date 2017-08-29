@@ -16,6 +16,8 @@ AC_PREREQ([2.60])
 
 AC_INIT([supermagic], [1.3-dev], [samuel@lanl.gov])
 
+AC_USE_SYSTEM_EXTENSIONS
+
 dnl check if AM_SILENT_RULES are supported
 dnl if so, build using AM_SILENT_RULES
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
@@ -32,8 +34,6 @@ AC_PROG_CC([mpicc cc])
 
 AM_PROG_CC_C_O
 AC_PROG_CC_C99
-
-AC_USE_SYSTEM_EXTENSIONS
 
 AC_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIR([m4])
