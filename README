@@ -136,7 +136,7 @@ Example 4: open mpi mca parameters
 Frequently Asked Questions
 ==========================
 
-q: "UNKNOWN" host names are not very useful.  How can i get useful
+q: "UNKNOWN" host names are not very useful.  How can I get useful
    host names?
 a: Run hostname_exchange first.  This will populate a host name lookup table and
    get rid of "UNKNOWN" host names.
