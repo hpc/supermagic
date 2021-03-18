@@ -2,68 +2,60 @@
                                    supermagic
 ################################################################################
 
-                              ===================
-                              what is supermagic?
-                              ===================
-a very simple mpi sanity code. nothing more, nothing less.
+What is supermagic?
+===================
+supermagic is a very simple MPI sanity code. Nothing more, nothing less.
 
-### latest distributions
+Latest Distributions
+====================
 http://hpc.github.com/supermagic
 
-                              ===================
-                              building supermagic
-                              ===================
+Configuring supermagic
+======================
 Clone this repository:
 
-  git clone http://hpc.github.com/supermagic
-
+  $ git clone https://github.com/hpc/supermagic.git
 
 Run autogen to generate the configure script:
+  $ cd supermagic
+  # Note that this step is skipped when building from a distribution tarball.
+  $ ./autogen
 
-  cd supermagic
-  ./autogen
+Run configure with the required options. Some examples include:
+
+  $ ./configure CC=mpicc
+
+  $ ./configure CC=mpicc --prefix=$HOME/.local
 
 
-Run configure with the required options. Example:
+Building supermagic: MPI-Only
+=============================
+  $ make
 
-  ./configure --prefix=$HOME/.local CC=mpicc
+Example (using modules and mpicc):
 
+  $ module load openmpi-gcc
+  $ make
 
-################
-build - mpi only
-################
-make
+Example (with verbose build output)
 
-example (using modules and mpicc):
+  $ make V=1
 
-    module load openmpi-gcc
-    make
+Building supermagic: MPI + Cell
+===============================
 
-example (using modules and cc):
+  $ make cell
 
-    module load openmpi-gcc
-    make MPICC=cc
+Example (using modules, mpicc, and cellsdk):
 
-example (with verbose build output)
+  $ module load openmpi-gcc cellsdk/3.1
+  $ make cell
 
-    make V=1
+supermagic Usage
+================
 
-##################
-build - mpi + cell
-##################
-make cell
-
-example (using modules, mpicc, and cellsdk):
-
-    module load openmpi-gcc cellsdk/3.1
-    make cell
-
-                               ================
-                               supermagic usage
-                               ================
-
-usage:
-    mpirun -np N ./supermagic [OPTION] ...
+Usage:
+    mpirun -np N ./supermagic [OPTIONS]
 
 options:
     [-a|--all]                   run all tests in suite
@@ -77,7 +69,7 @@ options:
     [-w|--write /a/path]         add /a/path to IO tests
     [-V|--verbose]               display verbose output
 
-available tests:
+Available tests:
     hostname_exchange
     stat_paths
     mpi_io
@@ -95,84 +87,58 @@ available tests:
 # cell_sanity only available when cell support is requested via "make cell"
     cell_sanity
 
-example:
-    mpirun -np 4 ./supermagic -s /glob/usr/file -s /usr/proj -n 2
+Example:
+  $ mpirun -np 4 ./supermagic -s /glob/usr/file -s /usr/proj -n 2
 
-################################################################################
-example 1: basic usage
-################################################################################
+Example 1: Basic Usage
+======================
 
-mpirun ./supermagic
+  $ mpirun ./supermagic
 
-################################################################################
-example 2: example script that tests system before application run
-################################################################################
+Example 2: Example script that tests system before application run
+==================================================================
 
-mpirun ./supermagic
+  mpirun ./supermagic
+  if [[ $? != 0 ]]
+  then
+      exit 1;
+  fi
+  # supermagic didn't detect any errors. Run my real application now:
+  mpirun ./my_real_app
 
-if [[ $? != 0 ]]
-then
-    exit 1;
-fi
+Example 3: running a custom set of tests
+========================================
 
-# supermagic didn't detect any errors - run my real app now...
-mpirun ./my_real_app
+# First runs mpi_io test then runs cell_sanity test
+  $ mpirun ./supermagic -t mpi_io,cell_sanity -w /scratch1/jess/my_data_dir
 
-################################################################################
-example 3: running a custom set of tests
-################################################################################
+supermagic Best Practices
+=========================
 
-# first runs mpi_io test then runs cell_sanity test
-mpirun ./supermagic -t mpi_io,cell_sanity -w /scratch1/jess/my_data_dir
+In general, it is best to run supermagic in a way that closely mimics the way in
+which you run your real target application.  For example, if you provide a list
+of MPI parameters that change the way in which your MPI implementation behaves,
+please also include those parameters when running supermagic.
 
+Example 4: open mpi mca parameters
+==================================
 
-                           =========================
-                           supermagic best practices
-                           =========================
+  mpirun -mca a_parameter -mca another ./supermagic
 
-in general, it is best to run supermagic in a way that closely mimics the way
-in which you run your real target application.  for example, if you provide a
-list of mpi parameters that change the way in which your mpi implementation
-behaves, please also include those parameters when running supermagic.
+  if [[ $? != 0 ]]
+  then
+      exit 1;
+  fi
 
-################################################################################
-example 4: open mpi mca parameters
-################################################################################
+  # supermagic didn't detect any errors, run my real application now:
+  mpirun -mca a_parameter -mca another ./my_real_app
 
-mpirun -mca a_parameter -mca another ./supermagic
+Frequently Asked Questions
+==========================
 
-if [[ $? != 0 ]]
-then
-    exit 1;
-fi
-
-# supermagic didn't detect any errors - run my real app now...
-mpirun -mca a_parameter -mca another ./my_real_app
-
-################################################################################
-################################################################################
-                                      FAQ
-################################################################################
-################################################################################
-
-q: "UNKNOWN" host names are not very useful.  how can i get useful
+q: "UNKNOWN" host names are not very useful.  How can i get useful
    host names?
-a: run hostname_exchange first.  this will populate a host name lookup table and
+a: Run hostname_exchange first.  This will populate a host name lookup table and
    get rid of "UNKNOWN" host names.
 
-   example: mpirun ./supermagic -t hostname_exchange,rand_root_bcast
-
-
-###############################################################################
-# Copyright (c) 2010-2011 Los Alamos National Security, LLC.
-#                         All rights reserved.
-#
-# This program was prepared by Los Alamos National Security, LLC at Los Alamos
-# National Laboratory (LANL) under contract No. DE-AC52-06NA25396 with the U.S.
-# Department of Energy (DOE). All rights in the program are reserved by the DOE
-# and Los Alamos National Security, LLC. Permission is granted to the public to
-# copy and use this software without charge, provided that this Notice and any
-# statement of authorship are reproduced on all copies. Neither the U.S.
-# Government nor LANS makes any warranty, express or implied, or assumes any
-# liability or responsibility for the use of this software.
-################################################################################
+   Example: mpirun ./supermagic -t hostname_exchange,rand_root_bcast
