@@ -22,7 +22,6 @@ Run autogen to generate the configure script:
   $ ./autogen
 
 Run configure with the required options. Some examples include:
-
   $ ./configure CC=mpicc
 
   $ ./configure CC=mpicc --prefix=$HOME/.local
@@ -120,7 +119,7 @@ which you run your real target application.  For example, if you provide a list
 of MPI parameters that change the way in which your MPI implementation behaves,
 please also include those parameters when running supermagic.
 
-Example 4: open mpi mca parameters
+Example 4: Open MPI MCA parameters
 ==================================
 
   mpirun -mca a_parameter -mca another ./supermagic
