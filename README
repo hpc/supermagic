@@ -13,21 +13,21 @@ http://hpc.github.com/supermagic
                               ===================
                               building supermagic
                               ===================
-Clone this repository
-```
-git clone http://hpc.github.com/supermagic
-```
+Clone this repository:
+
+  git clone http://hpc.github.com/supermagic
+
 
 Run autogen to generate the configure script:
-```
-cd supermagic
-./autogen
-```
+
+  cd supermagic
+  ./autogen
+
 
 Run configure with the required options. Example:
-```
-./configure --prefix=$HOME/.local CC=mpicc
-```
+
+  ./configure --prefix=$HOME/.local CC=mpicc
+
 
 ################
 build - mpi only
