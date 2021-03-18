@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2012 Los Alamos National Security, LLC.
+# Copyright (c) 2011-2021 Los Alamos National Security, LLC.
 #                         All rights reserved.
 #
 # This program was prepared by Los Alamos National Security, LLC at Los Alamos
@@ -30,7 +30,7 @@ supermagic_LDADD += -lcell_check
 endif
 
 EXTRA_DIST = \
-Makefile.top AUTHORS README \
+Makefile.top AUTHORS README.md \
 THANKS COPYRIGHT autogen \
 ChangeLog \
 util/crunch-hang util/rr-job-prep util/rr-run-job
