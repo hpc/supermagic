@@ -676,6 +676,7 @@ stat_paths(void)
 static void
 kill_mpi_messaging(int sig)
 {
+    (void)sig;
     /* no check in error path  - hope for the best */
     gethostname(host_name_buff, SMGC_HOST_NAME_MAX - 1);
     host_name_buff[SMGC_HOST_NAME_MAX - 1] = '\0';
@@ -813,7 +814,7 @@ mpi_io(void)
         SMGC_MPICHK(mpi_ret_code, out);
         gete_fin = MPI_Wtime();
 
-        if ((sizeof(char) * file_size) != num_elems) {
+        if ((sizeof(char) * file_size) != (size_t)num_elems) {
             SMGC_ERR_MSG("write size mismatch.  wrote %lu requested %d\n",
                          sizeof(char) * file_size,
                          num_elems);
@@ -835,7 +836,7 @@ mpi_io(void)
         SMGC_MPICHK(mpi_ret_code, out);
         effe_fin = MPI_Wtime();
 
-        if ((sizeof(char) * file_size) != num_elems) {
+        if ((sizeof(char) * file_size) != (size_t)num_elems) {
             SMGC_ERR_MSG("write/read mismatch.  wrote %lu read %d\n",
                          sizeof(char) * file_size,
                          num_elems);
