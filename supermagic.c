@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2012 Los Alamos National Security, LLC.
+ * Copyright (c) 2010-2022 Los Alamos National Security, LLC.
  *                         All rights reserved.
  *
  * This program was prepared by Los Alamos National Security, LLC at Los Alamos
@@ -782,8 +782,9 @@ mpi_io(void)
     SMGC_MPF("       file size (per rank process): %lu B\n", file_size);
 
     for (i = 0; i < num_fs_test_paths; ++i) {
-        snprintf(path_buff, SMGC_PATH_MAX, "%s/%s", fs_test_list[i],
-                 SMGC_MPI_FILE_NAME);
+        int nw = snprintf(path_buff, SMGC_PATH_MAX, "%s/%s", fs_test_list[i],
+                          SMGC_MPI_FILE_NAME);
+        if (nw >= SMGC_PATH_MAX) return SMGC_ERROR;
 
         SMGC_MPF("   === mpi_comm_world: writing to %s\n", fs_test_list[i]);
 

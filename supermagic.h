@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2012 Los Alamos National Security, LLC.
+ * Copyright (c) 2010-2022 Los Alamos National Security, LLC.
  *                         All rights reserved.
  *
  * This program was prepared by Los Alamos National Security, LLC at Los Alamos
@@ -152,7 +152,7 @@ enum {
 #define SMGC_MASTER_RANK       0
 #define SMGC_MAX_TIME_LEN      32
 #define SMGC_HOST_NAME_MAX     MPI_MAX_PROCESSOR_NAME
-#define SMGC_PATH_MAX          256
+#define SMGC_PATH_MAX          PATH_MAX
 #define SMGC_MAX_TESTS         64
 
 #define SMGC_MBS_UNIT_STR     "MB/s"
